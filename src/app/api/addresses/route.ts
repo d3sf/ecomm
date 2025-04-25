@@ -1,0 +1,250 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { prisma } from "@/lib/prisma";
+import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/route";
+
+export async function GET() {
+  try {
+    const session = await getServerSession(shopAuthOptions);
+    if (!session?.user) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    // Debugging: Log the session user
+    console.log("Session user:", session.user);
+
+    // Find user by email instead of ID to avoid integer overflow issues
+    if (!session.user.email) {
+      return NextResponse.json({ error: "User email not found" }, { status: 400 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email: session.user.email
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const addresses = await prisma.address.findMany({
+      where: {
+        userId: user.id
+      },
+      orderBy: {
+        isDefault: "desc"
+      }
+    });
+
+    return NextResponse.json(addresses);
+  } catch (error) {
+    console.error("[ADDRESSES_GET]", error);
+    return new NextResponse("Internal error", { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const session = await getServerSession(shopAuthOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!session.user.email) {
+      return NextResponse.json({ error: "User email not found" }, { status: 400 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email: session.user.email
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const body = await req.json();
+    const { 
+      fullName, 
+      phoneNumber, 
+      addressLine1, 
+      addressLine2, 
+      city, 
+      state, 
+      postalCode, 
+      isDefault,
+      addressLabel,
+      customLabel 
+    } = body;
+
+    // If this is set as default, unset all other default addresses
+    if (isDefault) {
+      await prisma.address.updateMany({
+        where: {
+          userId: user.id,
+          isDefault: true
+        },
+        data: {
+          isDefault: false
+        }
+      });
+    }
+
+    const address = await prisma.address.create({
+      data: {
+        userId: user.id,
+        fullName,
+        phoneNumber,
+        addressLine1,
+        addressLine2,
+        city,
+        state,
+        postalCode,
+        isDefault,
+        addressLabel,
+        customLabel
+      }
+    });
+
+    return NextResponse.json(address);
+  } catch (error) {
+    console.error("Error creating address:", error);
+    return NextResponse.json(
+      { error: "Failed to create address" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const session = await getServerSession(shopAuthOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!session.user.email) {
+      return NextResponse.json({ error: "User email not found" }, { status: 400 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email: session.user.email
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Address ID is required" }, { status: 400 });
+    }
+
+    const addressId = parseInt(id, 10);
+    if (isNaN(addressId)) {
+      return NextResponse.json({ error: "Invalid address ID" }, { status: 400 });
+    }
+
+    // Verify the address belongs to the user
+    const address = await prisma.address.findFirst({
+      where: {
+        id: addressId,
+        userId: user.id
+      }
+    });
+
+    if (!address) {
+      return NextResponse.json({ error: "Address not found" }, { status: 404 });
+    }
+
+    await prisma.address.delete({
+      where: {
+        id: addressId
+      }
+    });
+
+    return NextResponse.json({ message: "Address deleted successfully" });
+  } catch (error) {
+    console.error("[ADDRESSES_DELETE]", error);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    const session = await getServerSession(shopAuthOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!session.user.email) {
+      return NextResponse.json({ error: "User email not found" }, { status: 400 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email: session.user.email
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Address ID is required" }, { status: 400 });
+    }
+
+    const addressId = parseInt(id, 10);
+    if (isNaN(addressId)) {
+      return NextResponse.json({ error: "Invalid address ID" }, { status: 400 });
+    }
+
+    // Verify the address belongs to the user
+    const address = await prisma.address.findFirst({
+      where: {
+        id: addressId,
+        userId: user.id
+      }
+    });
+
+    if (!address) {
+      return NextResponse.json({ error: "Address not found" }, { status: 404 });
+    }
+
+    // First, unset all default addresses for this user
+    await prisma.address.updateMany({
+      where: {
+        userId: user.id,
+        isDefault: true
+      },
+      data: {
+        isDefault: false
+      }
+    });
+
+    // Then set the specified address as default
+    const updatedAddress = await prisma.address.update({
+      where: {
+        id: addressId
+      },
+      data: {
+        isDefault: true
+      }
+    });
+
+    return NextResponse.json(updatedAddress);
+  } catch (error) {
+    console.error("[ADDRESSES_PATCH]", error);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+} 

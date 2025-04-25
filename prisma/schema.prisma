@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  role         String // e.g. 'SUPERADMIN', 'MANAGER'
+  name         String?
+  createdAt    DateTime @default(now())
+}
+
+model Category {
+  id               Int               @id @default(autoincrement())
+  name             String
+  slug             String            @unique
+  parentId         Int? // ✅ No @default at all
+  sortOrder        Int               @default(0)
+  image            Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @default(now()) @updatedAt
+  published        Boolean           @default(true)
+  parent           Category?         @relation("CategoryParent", fields: [parentId], references: [id])
+  children         Category[]        @relation("CategoryParent")
+  products         ProductCategory[]
+  defaultProducts  Product[]         @relation("DefaultCategory")
+  homepageSections HomepageSection[]
+}
+
+model Product {
+  id                Int                @id @default(autoincrement())
+  name              String
+  description       String?
+  images            Json
+  price             Float
+  quantity          String
+  slug              String             @unique
+  stock             Int                @default(0)
+  tags              String[]
+  published         Boolean            @default(true)
+  attributes        ProductAttribute[]
+  categories        ProductCategory[]
+  createdAt         DateTime           @default(now())
+  defaultCategoryId Int?
+  defaultCategory   Category?          @relation("DefaultCategory", fields: [defaultCategoryId], references: [id])
+  orderItems        OrderItem[]
+}
+
+model ProductAttribute {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String // Attribute name (e.g., "Material", "Type")
+  value     String // Attribute value (e.g., "Virgin Paper", "Pocket Tissue")
+}
+
+model ProductCategory {
+  productId  Int
+  categoryId Int
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@id([productId, categoryId])
+}
+
+model HomepageSection {
+  id         Int       @id @default(autoincrement())
+  name       String
+  type       String // "category" or "banner"
+  categoryId Int? // For category sections
+  sortOrder  Int       @default(0)
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  category   Category? @relation(fields: [categoryId], references: [id])
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  phone        String?
+  address      String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  orders       Order[]
+  addresses    Address[]
+}
+
+model Order {
+  id                Int         @id @default(autoincrement())
+  userId            Int
+  totalAmount       Float
+  status            String      @default("PENDING")
+  paymentMethod     String      @default("COD")  // COD, CARD, UPI, etc.
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  user              User        @relation(fields: [userId], references: [id])
+  orderItems        OrderItem[]
+  shippingAddressId Int
+  shippingAddress   Address     @relation(fields: [shippingAddressId], references: [id])
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  price     Float
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+enum AddressLabel {
+  HOME
+  WORK
+  OTHER
+}
+
+model Address {
+  id           Int         @id @default(autoincrement())
+  userId       Int
+  user         User        @relation(fields: [userId], references: [id])
+  fullName     String
+  phoneNumber  String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  postalCode   String
+  isDefault    Boolean     @default(false)
+  addressLabel AddressLabel @default(HOME)
+  customLabel  String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  orders       Order[]
+
+  @@index([userId])
+}
+

@@ -1,0 +1,19 @@
+The ImageUpload component has the following props:
+images: Array of image URLs
+onChange: Callback function that receives the updated array of image URLs
+label: Custom label for the upload area (optional)
+multiple: Whether to allow multiple image uploads (optional, default: true)
+maxFiles: Maximum number of files that can be uploaded (optional, default: 5)
+Features of the component:
+Drag and drop interface
+Multiple or single image upload support
+Image preview with delete functionality
+Hover effects for better UX
+Responsive grid layout for image previews
+TypeScript support
+Fully customizable through props
+Remember to:
+Replace "your_upload_preset" in the ImageUpload component with your actual Cloudinary upload preset
+Configure your Cloudinary account settings
+Add proper error handling if needed
+Would you like me to help you implement this in your categories page or make any adjustments to the component?

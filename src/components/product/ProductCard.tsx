@@ -1,0 +1,129 @@
+"use client";
+
+import React from "react";
+import Image from "next/image";
+import Link from "next/link";
+import AddToCartButton from "@/components/cart/AddToCartButton";
+import { useCart } from "@/contexts/CartContext";
+
+interface ProductImage {
+  url: string;
+}
+
+interface Product {
+  id: string | number;
+  name: string;
+  price: string | number;
+  quantity: string | number;
+  images?: ProductImage[] | { url: string }[] | null;
+  slug?: string;
+}
+
+interface ProductCardProps {
+  id?: string | number;
+  name?: string;
+  price?: string | number;
+  quantity?: string | number;
+  images?: ProductImage[] | { url: string }[] | null;
+  product?: Product;
+}
+
+const ProductCard: React.FC<ProductCardProps> = (props) => {
+  const { product, ...individualProps } = props;
+
+  // Use either individual props or extract from product object
+  const id = product?.id || individualProps.id;
+  const name = product?.name || individualProps.name || '';
+  const price = product?.price || individualProps.price || 0;
+  const quantity = product?.quantity || individualProps.quantity || '';
+  const images = product?.images || individualProps.images || null;
+  const slug = product?.slug || id;
+
+  const { addToCart, getItemQuantity } = useCart();
+  const currentQuantity = id ? getItemQuantity(id) : 0;
+
+  // Default to placeholder image
+  let imageUrl = "/placeholder.png";
+
+  // Try to extract image URL from the product images
+  try {
+    if (images) {
+      // Handle different possible formats of images
+      if (Array.isArray(images) && images.length > 0) {
+        const firstImage = images[0];
+        if (typeof firstImage === 'object' && firstImage !== null && 'url' in firstImage) {
+          const url = firstImage.url;
+          if (url && typeof url === 'string' && url.trim() !== '') {
+            imageUrl = url;
+          }
+        }
+      } else if (typeof images === 'object' && images !== null) {
+        const imageValues = Object.values(images);
+        if (imageValues.length > 0 && typeof imageValues[0] === 'object' && imageValues[0] !== null && 'url' in imageValues[0]) {
+          const url = imageValues[0].url;
+          if (url && typeof url === 'string' && url.trim() !== '') {
+            imageUrl = url;
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error processing product image:", error);
+  }
+
+  // Ensure imageUrl is not empty
+  if (!imageUrl || imageUrl.trim() === '') {
+    imageUrl = "/placeholder.png";
+  }
+
+  // Format price and quantity
+  const formattedPrice = typeof price === 'string' ? parseFloat(price) : price;
+  // const formattedQuantity = typeof quantity === 'string' ? parseInt(quantity, 10) : quantity;
+
+  const handleAddToCart = (productId: string | number, quantity: number) => {
+    addToCart(productId, quantity);
+  };
+
+  if (!id) {
+    return null; // Don't render if no id is available
+  }
+
+  return (
+    <div className="border border-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow w-48">
+      <Link href={`/prdn/${slug}/prid/${id}`}>
+        <div className="relative h-[140px] w-[140px] mx-auto ">
+          <Image
+            src={imageUrl}
+            alt={name}
+            fill
+            className="object-cover"
+            
+          />
+        </div>
+        <div className="p-4">
+          <h3 className="font-semibold text-md mb-2 h-[3rem] line-clamp-2">{name}</h3>
+
+          {/* Quantity */}
+          {/* <p className="text-gray-600 text-sm mb-2">{formattedQuantity}</p> */}
+          <p className="text-gray-600 text-sm mb-2">{quantity}</p>
+
+        </div>
+
+      </Link>
+      <div className="flex justify-between px-4 pb-4">
+        <div>
+          <p className=" text-sm font-semibold">₹{formattedPrice}</p>
+        </div>
+        <div className="cursor-pointer">
+          <AddToCartButton
+            productId={id}
+            onAddToCart={handleAddToCart}
+            initialQuantity={currentQuantity}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductCard;
