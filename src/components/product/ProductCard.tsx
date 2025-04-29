@@ -8,6 +8,7 @@ import { useCart } from "@/contexts/CartContext";
 
 interface ProductImage {
   url: string;
+  publicId?: string;
 }
 
 interface Product {
@@ -15,8 +16,9 @@ interface Product {
   name: string;
   price: string | number;
   quantity: string | number;
-  images?: ProductImage[] | { url: string }[] | null;
+  images?: ProductImage[] | { url: string; publicId?: string }[] | null;
   slug?: string;
+  defaultImagePublicId?: string;
 }
 
 interface ProductCardProps {
@@ -24,7 +26,8 @@ interface ProductCardProps {
   name?: string;
   price?: string | number;
   quantity?: string | number;
-  images?: ProductImage[] | { url: string }[] | null;
+  images?: ProductImage[] | { url: string; publicId?: string }[] | null;
+  defaultImagePublicId?: string;
   product?: Product;
 }
 
@@ -38,6 +41,7 @@ const ProductCard: React.FC<ProductCardProps> = (props) => {
   const quantity = product?.quantity || individualProps.quantity || '';
   const images = product?.images || individualProps.images || null;
   const slug = product?.slug || id;
+  const defaultImagePublicId = product?.defaultImagePublicId || individualProps.defaultImagePublicId;
 
   const { addToCart, getItemQuantity } = useCart();
   const currentQuantity = id ? getItemQuantity(id) : 0;
@@ -50,11 +54,37 @@ const ProductCard: React.FC<ProductCardProps> = (props) => {
     if (images) {
       // Handle different possible formats of images
       if (Array.isArray(images) && images.length > 0) {
-        const firstImage = images[0];
-        if (typeof firstImage === 'object' && firstImage !== null && 'url' in firstImage) {
-          const url = firstImage.url;
-          if (url && typeof url === 'string' && url.trim() !== '') {
-            imageUrl = url;
+        // If there's a default image ID, try to find that image
+        if (defaultImagePublicId && images.length > 1) {
+          // Find the default image
+          const defaultImage = images.find(img => 
+            typeof img === 'object' && 
+            img !== null && 
+            'publicId' in img && 
+            img.publicId === defaultImagePublicId
+          );
+          
+          // Use the default image if found
+          if (defaultImage && 'url' in defaultImage && defaultImage.url) {
+            imageUrl = defaultImage.url;
+          } else {
+            // Fallback to first image if default not found
+            const firstImage = images[0];
+            if (typeof firstImage === 'object' && firstImage !== null && 'url' in firstImage) {
+              const url = firstImage.url;
+              if (url && typeof url === 'string' && url.trim() !== '') {
+                imageUrl = url;
+              }
+            }
+          }
+        } else {
+          // No default image specified, use the first image
+          const firstImage = images[0];
+          if (typeof firstImage === 'object' && firstImage !== null && 'url' in firstImage) {
+            const url = firstImage.url;
+            if (url && typeof url === 'string' && url.trim() !== '') {
+              imageUrl = url;
+            }
           }
         }
       } else if (typeof images === 'object' && images !== null) {

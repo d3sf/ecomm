@@ -1,6 +1,6 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
+import {  useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -26,12 +26,12 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold text-gray-900">
               Welcome, {session?.user?.name || "Admin"}
             </h1>
-            <button
+            {/* <button
               onClick={() => signOut()}
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
             >
               Sign Out
-            </button>
+            </button> */}
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Admin Dashboard</h2>

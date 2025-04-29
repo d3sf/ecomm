@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
-import type { Category } from "@/types";
-import type { ProductType } from "@/lib/zodvalidation";
+import type { ProductType, CategoryType } from "@/lib/zodvalidation";
 import ImageUpload from "@/components/ImageUpload";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import { ChevronDown, ChevronRight, X } from "lucide-react";
@@ -10,7 +9,7 @@ import { ChevronDown, ChevronRight, X } from "lucide-react";
 interface ProductFormProps {
   initialData?: ProductType;
   onSubmit: (data: ProductType) => void;
-  allCategories: Category[];
+  allCategories: CategoryType[];
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({
@@ -29,9 +28,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
       slug: "",
       stock: 0,
       tags: [],
-      published: false,
+      published: true,
       attributes: [],
-      defaultCategoryId: undefined
+      defaultCategoryId: undefined,
+      defaultImagePublicId: undefined
     }
   );
 
@@ -43,8 +43,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
   }, [initialData]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setProduct(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    
+    // Convert to number if the input type is number
+    const processedValue = type === 'number' ? Number(value) : value;
+    
+    setProduct(prev => ({ ...prev, [name]: processedValue }));
   };
 
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
@@ -57,7 +61,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     );
   };
 
-  const handleCategorySelect = (categoryId: number, category: Category) => {
+  const handleCategorySelect = (categoryId: number, category: CategoryType) => {
     setProduct(prev => {
       const currentCategories = prev.categories || [];
       const categoryExists = currentCategories.some(
@@ -81,11 +85,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 id: categoryId,
                 name: category.name,
                 slug: category.slug,
-                published: category.published,
-                parentId: null,
-                sortOrder: 0,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                published: category.published ?? true,
+                parentId: category.parentId ?? null,
+                sortOrder: category.sortOrder ?? 0,
+                image: category.image
               }
             }
           ]
@@ -94,25 +97,39 @@ const ProductForm: React.FC<ProductFormProps> = ({
     });
   };
 
+  const handleDefaultImageChange = (publicId: string) => {
+    setProduct(prev => ({
+      ...prev,
+      defaultImagePublicId: publicId
+    }));
+  };
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    onSubmit(product);
+
+    // Ensure price and stock are numbers
+    const formData = {
+      ...product,
+      price: Number(product.price),
+      stock: Number(product.stock)
+    };
+
+    onSubmit(formData);
   };
 
   // Organize categories into a hierarchical structure
   const organizeCategories = () => {
-    const parentCategories = allCategories.filter(cat => !cat.parentId);
-    const categoryMap = new Map<number, Category[]>();
+    const parentCategories = allCategories.filter(cat => !cat.parentId && cat.id);
+    const categoryMap = new Map<number, CategoryType[]>();
     
     // Group subcategories by parent ID
     allCategories.forEach(cat => {
-      if (cat.parentId) {
-        const parentId = typeof cat.parentId === 'string' ? parseInt(cat.parentId) : cat.parentId;
-        if (!categoryMap.has(parentId)) {
-          categoryMap.set(parentId, []);
+      if (cat.parentId && cat.id) {
+        if (!categoryMap.has(cat.parentId)) {
+          categoryMap.set(cat.parentId, []);
         }
-        categoryMap.get(parentId)?.push(cat);
+        categoryMap.get(cat.parentId)?.push(cat);
       }
     });
     
@@ -131,7 +148,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4 max-w-4xl mx-auto">
         {/* Name */}
         <div className="flex items-center gap-4">
-          <label className="w-40 font-medium">Product Name</label>
+          <label className="w-40 font-medium">Product Name<span className="text-red-500">*</span></label>
           <input
             type="text"
             name="name"
@@ -167,6 +184,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
               label="Product Images"
               multiple
               folder="products"
+              defaultImagePublicId={product.defaultImagePublicId}
+              onDefaultImageChange={handleDefaultImageChange}
             />
             <div className="mt-2 text-sm text-gray-500">
               If no image is uploaded, a placeholder will be shown
@@ -195,16 +214,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
                           const categoryToRemove = product.categories?.find(
                             cat => cat.category.name === name
                           );
-                          if (categoryToRemove) {
+                          if (categoryToRemove?.category.id) {
                             handleCategorySelect(categoryToRemove.category.id, {
-                              id: categoryToRemove.category.id.toString(),
+                              id: categoryToRemove.category.id,
                               name: categoryToRemove.category.name,
                               slug: categoryToRemove.category.slug,
-                              published: categoryToRemove.category.published,
-                              parentId: null,
-                              sortOrder: 0,
-                              createdAt: new Date().toISOString(),
-                              updatedAt: new Date().toISOString()
+                              published: categoryToRemove.category.published ?? true,
+                              parentId: categoryToRemove.category.parentId ?? null,
+                              sortOrder: categoryToRemove.category.sortOrder ?? 0,
+                              image: categoryToRemove.category.image
                             });
                           }
                         }}
@@ -225,17 +243,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
               </div>
               <div className="p-3 space-y-3">
                 {parentCategories.map((category) => {
-                  const categoryId = typeof category.id === 'string' ? parseInt(category.id) : category.id;
+                  if (!category.id) return null;
                   return (
-                    <div key={categoryId}>
+                    <div key={category.id}>
                       <div className="flex items-center">
-                        {categoryMap.get(categoryId)?.length ? (
+                        {categoryMap.get(category.id)?.length ? (
                           <button
                             type="button"
-                            onClick={() => toggleCategory(categoryId)}
+                            onClick={() => category.id && toggleCategory(category.id)}
                             className="p-1 hover:bg-gray-200 rounded mr-2"
                           >
-                            {expandedCategories.includes(categoryId) ? (
+                            {expandedCategories.includes(category.id) ? (
                               <ChevronDown className="h-4 w-4" />
                             ) : (
                               <ChevronRight className="h-4 w-4" />
@@ -247,27 +265,27 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         <input
                           type="checkbox"
                           checked={product.categories?.some(
-                            c => c.category.id === categoryId
+                            c => c.category.id === category.id
                           )}
-                          onChange={() => handleCategorySelect(categoryId, category)}
+                          onChange={() => category.id && handleCategorySelect(category.id, category)}
                           className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
                         />
                         <span className="font-medium">{category.name}</span>
                       </div>
                       
                       {/* Subcategories */}
-                      {expandedCategories.includes(categoryId) && categoryMap.get(categoryId) && (
+                      {expandedCategories.includes(category.id) && categoryMap.get(category.id) && (
                         <div className="pl-8 mt-1">
-                          {categoryMap.get(categoryId)?.map((subcategory) => {
-                            const subcategoryId = typeof subcategory.id === 'string' ? parseInt(subcategory.id) : subcategory.id;
+                          {categoryMap.get(category.id)?.map((subcategory) => {
+                            if (!subcategory.id) return null;
                             return (
-                              <div key={subcategoryId} className="flex items-center py-1">
+                              <div key={subcategory.id} className="flex items-center py-1">
                                 <input
                                   type="checkbox"
                                   checked={product.categories?.some(
-                                    c => c.category.id === subcategoryId
+                                    c => c.category.id === subcategory.id
                                   )}
-                                  onChange={() => handleCategorySelect(subcategoryId, subcategory)}
+                                  onChange={() => subcategory.id && handleCategorySelect(subcategory.id, subcategory)}
                                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
                                 />
                                 <span>{subcategory.name}</span>
@@ -306,7 +324,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
         {/* Price */}
         <div className="flex items-center gap-4">
-          <label className="w-40 font-medium">Price</label>
+          <label className="w-40 font-medium">Price<span className="text-red-500">*</span></label>
           <input
             type="number"
             name="price"
@@ -320,7 +338,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
         {/* Quantity */}
         <div className="flex items-center gap-4">
-          <label className="w-40 font-medium">Quantity</label>
+          <label className="w-40 font-medium">Quantity<span className="text-red-500">*</span></label>
           <input
             type="text"
             name="quantity"
@@ -328,6 +346,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             className="flex-1 p-2 border border-gray-300 rounded"
             value={product.quantity}
             onChange={handleChange}
+            required
           />
         </div>
 
@@ -346,36 +365,73 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
         {/* Slug */}
         <div className="flex items-center gap-4">
-          <label className="w-40 font-medium">Slug</label>
+          <label className="w-40 font-medium">Slug<span className="text-red-500">*</span></label>
           <input
             type="text"
             name="slug"
-            placeholder="Slug (optional)"
+            placeholder="Slug"
             className="flex-1 p-2 border border-gray-300 rounded"
             value={product.slug}
             onChange={handleChange}
+            required
           />
         </div>
 
         {/* Tags */}
-        <div className="flex items-center gap-4">
-          <label className="w-40 font-medium">Tags</label>
-          <input
-            type="text"
-            name="tags"
-            placeholder="Tags (comma-separated)"
-            className="flex-1 p-2 border border-gray-300 rounded"
-            value={product.tags?.join(",") || ""}
-            onChange={(e) =>
-              setProduct(prev => ({
-                ...prev,
-                tags: e.target.value
-                  .split(",")
-                  .map(tag => tag.trim())
-                  .filter(tag => tag !== ""),
-              }))
-            }
-          />
+        <div className="flex items-start gap-4">
+          <label className="w-40 font-medium mt-2">Tags</label>
+          <div className="flex-1">
+            {/* Selected Tags Display */}
+            {product.tags && product.tags.length > 0 && (
+              <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Tags:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {product.tags.map((tag, index) => (
+                    <span 
+                      key={index} 
+                      className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-sm"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProduct(prev => ({
+                            ...prev,
+                            tags: prev.tags?.filter((_, i) => i !== index)
+                          }));
+                        }}
+                        className="ml-1 text-blue-600 hover:text-blue-800"
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tag Input */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Add tag and press Enter"
+                className="flex-1 p-2 border border-gray-300 rounded"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const value = (e.target as HTMLInputElement).value.trim();
+                    if (value) {
+                      setProduct(prev => ({
+                        ...prev,
+                        tags: [...(prev.tags || []), value]
+                      }));
+                      (e.target as HTMLInputElement).value = '';
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Publish Toggle */}

@@ -9,11 +9,25 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "10");
+  const search = searchParams.get("search") || "";
   const skip = (page - 1) * limit;
 
   try {
+    // Build the where clause based on search term
+    let where = {};
+    if (search) {
+      where = {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+          { slug: { contains: search, mode: 'insensitive' } }
+        ]
+      };
+    }
+
     const [products, totalCount] = await Promise.all([
       prisma.product.findMany({
+        where,
         skip: skip,
         take: limit,
         include: {
@@ -29,7 +43,7 @@ export async function GET(request: Request) {
           id: 'desc'
         }
       }),
-      prisma.product.count()
+      prisma.product.count({ where })
     ]);
 
     return NextResponse.json({

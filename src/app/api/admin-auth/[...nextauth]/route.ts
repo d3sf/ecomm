@@ -104,6 +104,31 @@ export const adminAuthOptions: NextAuthOptions = {
     },
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
+        // Always fetch the latest user data from the database
+        if (token.id) {
+          try {
+            const adminUser = await prisma.adminUser.findUnique({
+              where: { id: parseInt(token.id as string) },
+              select: { 
+                id: true, 
+                name: true, 
+                email: true, 
+                role: true 
+              }
+            });
+            
+            if (adminUser) {
+              session.user.id = adminUser.id.toString();
+              session.user.name = adminUser.name || undefined;
+              session.user.email = adminUser.email;
+              session.user.role = adminUser.role;
+            }
+          } catch (error) {
+            console.error("Error fetching updated user data:", error);
+          }
+        }
+        
+        // Fallback to token data if database fetch fails
         session.user.id = token.id as string;
         session.user.type = token.type;
         session.user.role = token.role;

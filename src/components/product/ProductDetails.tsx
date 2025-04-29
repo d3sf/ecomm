@@ -14,7 +14,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const formattedImages = product.images && product.images.length > 0
     ? product.images.map(img => {
         if (typeof img === 'object' && img !== null && 'url' in img) {
-          return { url: img.url };
+          return { 
+            url: img.url,
+            publicId: img.publicId 
+          };
         }
         return { url: '/placeholder.png' };
       })
@@ -33,7 +36,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         <div className="flex flex-col md:flex-row">
           {/* Left side - Product Image Gallery */}
           <div className="md:w-1/2 p-4">
-            <ProductImageGallery images={formattedImages} />
+            <ProductImageGallery 
+              images={formattedImages} 
+              defaultImagePublicId={product.defaultImagePublicId}
+            />
           </div>
 
           {/* Right side - Product Details */}

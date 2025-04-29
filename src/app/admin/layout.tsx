@@ -3,15 +3,27 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
+import AdminNavbar from "@/components/admin/AdminNavbar";
+import { 
+    LayoutDashboard, 
+    Package, 
+    FolderTree, 
+    LayoutGrid, 
+    ShoppingCart, 
+    Users,
+    LogOut,
+    UserCog
+} from "lucide-react";
 
 //  [todo] add Icons
 const sidebarLinks = [
-    { name: "Dashboard", path: "/admin" },
-    { name: "Products", path: "/admin/products" },
-    { name: "Categories", path: "/admin/categories" },
-    { name: "Homepage Sections", path: "/admin/homepage-sections" },
-    { name: "Orders", path: "/admin/orders" },
-    { name: "Customers", path: "/admin/customers" },
+    { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
+    { name: "Products", path: "/admin/products", icon: Package },
+    { name: "Categories", path: "/admin/categories", icon: FolderTree },
+    { name: "Homepage Sections", path: "/admin/homepage-sections", icon: LayoutGrid },
+    { name: "Orders", path: "/admin/orders", icon: ShoppingCart },
+    { name: "Customers", path: "/admin/customers", icon: Users },
+    { name: "Staff", path: "/admin/staff", icon: UserCog },
 ];
 
 export default function AdminLayout({
@@ -53,32 +65,50 @@ export default function AdminLayout({
     }
     
     return (
-        <div className="flex min-h-screen">
-            {/* Sidebar */}
-            <aside className="w-64 bg-gray-900 text-white p-4 flex flex-col h-screen fixed">
-                <h2 className="text-xl font-bold mb-6">Admin Panel</h2>
-                <nav className="flex-1">
-                    <ul>
-                        {sidebarLinks.map((link) => (
-                            <li key={link.path} className="mb-2">
-                                <Link href={link.path}>
-                                    <span className={`block px-4 py-2 rounded ${pathname === link.path ? "bg-gray-700" : "hover:bg-gray-800"}`}>
-                                        {link.name}
-                                    </span>
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
-                <button className="w-full text-xl bg-green-500 hover:bg-green-600 text-white py-2 rounded">
-                    Logout
-                </button>
-            </aside>
+        <div className="min-h-screen bg-gray-50">
+            <AdminNavbar />
+            <div className="flex min-h-screen">
+                {/* Sidebar */}
+                <aside className="w-64 bg-gray-900 text-white p-4 flex flex-col h-screen fixed top-0">
+                    <div className="flex flex-col h-full">
+                        <div className="flex-1">
+                            <h2 className="text-xl font-bold mb-6">Admin Panel</h2>
+                            <nav>
+                                <ul>
+                                    {sidebarLinks.map((link) => {
+                                        const Icon = link.icon;
+                                        return (
+                                            <li key={link.path} className="mb-2">
+                                                <Link href={link.path}>
+                                                    <span className={`flex items-center px-4 py-2 rounded ${
+                                                        pathname === link.path 
+                                                            ? "bg-gray-700" 
+                                                            : "hover:bg-gray-800"
+                                                    }`}>
+                                                        <Icon className="w-5 h-5 mr-3" />
+                                                        {link.name}
+                                                    </span>
+                                                </Link>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </nav>
+                        </div>
+                        <div className="mt-auto">
+                            <button className="w-full flex items-center justify-center text-xl bg-green-500 hover:bg-green-600 text-white py-2 rounded">
+                                <LogOut className="w-5 h-5 mr-2" />
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 ml-64 p-8">
-                {children}
-            </main>
+                {/* Main Content */}
+                <main className="flex-1 ml-64 p-8 pt-16">
+                    {children}
+                </main> 
+            </div>
         </div>
     );
 }

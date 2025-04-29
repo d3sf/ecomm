@@ -106,6 +106,7 @@ export const ProductSchema = z.object({
     published: z.boolean().default(true)
   }).optional(),
   defaultCategoryId: z.number().int().positive().optional(),
+  defaultImagePublicId: z.string().optional(),
 });
 
 // ⚙️ Product Attribute Schema

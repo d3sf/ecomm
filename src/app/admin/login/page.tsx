@@ -45,6 +45,7 @@ export default function AdminLogin() {
       await signIn("google", {
         redirect: true,
         callbackUrl: "/admin",
+        signinUrl: "/api/admin-auth/signin/google"
       });
     } catch (err) {
       console.error("Google sign in error:", err);

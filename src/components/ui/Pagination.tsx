@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, memo } from "react";
 
 interface PaginationProps {
   currentPage: number;
@@ -8,14 +9,17 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-const Pagination = ({ 
+// Use memo to prevent unnecessary re-renders
+const Pagination = memo(({ 
   currentPage, 
   totalPages, 
   totalItems = 0, 
   itemsPerPage, 
   onPageChange 
 }: PaginationProps) => {
-  console.log('Pagination Props:', { currentPage, totalPages, totalItems, itemsPerPage });
+  useEffect(() => {
+    // Effect for tracking component updates
+  }, [currentPage, totalPages, totalItems, itemsPerPage]);
 
   const startItem = totalItems ? (currentPage - 1) * itemsPerPage + 1 : 0;
   const endItem = totalItems ? Math.min(currentPage * itemsPerPage, totalItems) : 0;
@@ -58,7 +62,6 @@ const Pagination = ({
 
   // Don't return null, show empty pagination instead
   if (!totalItems || totalItems === 0) {
-    console.log('No items for pagination');
     return (
       <div className="mt-4 flex items-center justify-between">
         <div className="text-xs text-gray-700">
@@ -67,6 +70,12 @@ const Pagination = ({
       </div>
     );
   }
+
+  const handlePageClick = (page: number) => {
+    if (page !== currentPage) {
+      onPageChange(page);
+    }
+  };
 
   return (
     <div className="mt-4 flex items-center justify-between">
@@ -77,7 +86,7 @@ const Pagination = ({
         <div className="flex gap-2 items-center">
           {/* Previous page button */}
           <button
-            onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+            onClick={() => currentPage > 1 && handlePageClick(currentPage - 1)}
             disabled={currentPage === 1}
             className="min-w-[32px] p-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Previous page"
@@ -89,7 +98,7 @@ const Pagination = ({
           {getPageNumbers().map((page, index) => (
             <button
               key={index}
-              onClick={() => typeof page === 'number' ? onPageChange(page) : null}
+              onClick={() => typeof page === 'number' ? handlePageClick(page) : null}
               className={`min-w-[32px] px-2 py-1 rounded ${
                 page === currentPage
                   ? 'bg-green-500 text-white'
@@ -105,7 +114,7 @@ const Pagination = ({
 
           {/* Next page button */}
           <button
-            onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+            onClick={() => currentPage < totalPages && handlePageClick(currentPage + 1)}
             disabled={currentPage === totalPages}
             className="min-w-[32px] p-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Next page"
@@ -116,6 +125,8 @@ const Pagination = ({
       )}
     </div>  
   );
-};
+});
+
+Pagination.displayName = "Pagination";
 
 export default Pagination; 

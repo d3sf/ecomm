@@ -57,6 +57,7 @@ export default function AccountPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("orders");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
@@ -114,6 +115,9 @@ export default function AccountPage() {
   useEffect(() => {
     if (session?.user?.name) {
       setName(session.user.name);
+    }
+    if (session?.user?.phone) {
+      setPhone(session.user.phone);
     }
 
     fetchAddresses();
@@ -230,6 +234,7 @@ export default function AccountPage() {
               <div>
                 <h2 className="text-xl font-semibold">{session.user?.name}</h2>
                 <p className="text-gray-500">{session.user?.email}</p>
+                <p className="text-gray-500">{session.user?.phone}</p>
               </div>
             </div>
 
@@ -580,6 +585,22 @@ export default function AccountPage() {
                       onChange={(e) => setName(e.target.value)}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Phone Number
+                    </label>
+                    <input
+                      type="text"
+                      id="phone"
+                      value={phone}
+                      readOnly
+                      className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">This is your verified phone number used for login.</p>
                   </div>
                   <button
                     type="submit"

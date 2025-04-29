@@ -7,6 +7,7 @@ import ProductCard from '@/components/product/ProductCard';
 
 interface ProductImage {
   url?: string;
+  publicId?: string;
   [key: string]: string | undefined;
 }
 
@@ -17,6 +18,7 @@ interface Product {
   images: ProductImage | ProductImage[] | string[] | null;
   slug: string;
   quantity?: string; // Added to match ProductCard expectations
+  defaultImagePublicId?: string;
 }
 
 interface ProductCarouselProps {
@@ -56,20 +58,23 @@ export default function ProductCarousel({ categoryName, products, categorySlug }
   };
 
   // Convert various image formats to the format expected by ProductCard
-  const formatImages = (images: Product['images']): { url: string }[] => {
+  const formatImages = (images: Product['images']): { url: string; publicId?: string }[] => {
     if (!images) return [{ url: '/placeholder.png' }];
     
     // If images is an array (either string[] or ProductImage[])
     if (Array.isArray(images)) {
       return images.map(img => {
         if (typeof img === 'string') return { url: img };
-        return { url: img?.url || '/placeholder.png' };
+        return { 
+          url: img?.url || '/placeholder.png',
+          publicId: img?.publicId
+        };
       });
     }
     
     // If images is a single ProductImage object
     if (typeof images === 'object') {
-      if (images.url) return [{ url: images.url }];
+      if (images.url) return [{ url: images.url, publicId: images.publicId }];
       // Check for numbered keys
       const firstKey = Object.keys(images)[0];
       return [{ url: images[firstKey] || '/placeholder.png' }];
@@ -103,7 +108,8 @@ export default function ProductCarousel({ categoryName, products, categorySlug }
                   price: product.price,
                   quantity: product.quantity || '1 pc',
                   images: formatImages(product.images),
-                  slug: product.slug
+                  slug: product.slug,
+                  defaultImagePublicId: product.defaultImagePublicId
                 }}
               />
             </div>

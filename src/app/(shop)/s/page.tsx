@@ -14,6 +14,7 @@ interface Product {
   quantity: string;
   images: { url: string }[];
   slug: string;
+  defaultImagePublicId?: string;
 }
 
 export default function SearchResults() {
@@ -88,7 +89,9 @@ export default function SearchResults() {
               >
                 <div className="relative w-10 h-10 mr-2">
                   <Image
-                    src={product.images?.[0]?.url || '/placeholder.png'}
+                    src={product.images?.[0]?.url && typeof product.images[0].url === 'string' 
+                      ? product.images[0].url 
+                      : '/placeholder.png'}
                     alt={product.name}
                     fill
                     className="object-cover rounded"
@@ -113,7 +116,8 @@ export default function SearchResults() {
             name={product.name}
             price={product.price}
             quantity={product.quantity}
-            images={product.images}
+            images={product.images?.filter(img => img?.url && typeof img.url === 'string')}
+            defaultImagePublicId={product.defaultImagePublicId}
           />
         ))}
       </div>

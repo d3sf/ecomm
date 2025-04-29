@@ -4,7 +4,7 @@ import { useState } from "react";
 import ImageUpload from "@/components/ImageUpload";
 import { CategorySchema } from "@/lib/zodvalidation";
 import { z } from "zod";
-import type { CloudinaryImage } from "@/components/ImageUpload";
+// import type { CloudinaryImage } from "@/components/ImageUpload";
 
 type FormCategoryType = z.infer<typeof CategorySchema>;
 

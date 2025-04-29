@@ -7,6 +7,7 @@ import { ProductType, CategoryType } from "@/lib/zodvalidation";
 import { toast } from "react-hot-toast";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import ActionIcons from "@/components/ui/ActionIcons";
+import Pagination from "@/components/ui/Pagination";
 
 interface ProductListProps {
   products: ProductType[];
@@ -15,6 +16,12 @@ interface ProductListProps {
   onEdit: (product: ProductType) => void;
   onTogglePublish: (id: number, published: boolean) => void;
   onSelectionChange: (selectedIds: number[]) => void;
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+  onSearch: (term: string) => void;
 }
 
 const ProductList: React.FC<ProductListProps> = ({ 
@@ -22,19 +29,26 @@ const ProductList: React.FC<ProductListProps> = ({
   onDelete,
   onEdit,
   onTogglePublish,
-  onSelectionChange
+  onSelectionChange,
+  currentPage,
+  totalPages,
+  totalItems,
+  itemsPerPage,
+  onPageChange,
+  onSearch
 }) => {
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState<ProductType[]>(products);
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
 
+  // Debounce search term to prevent too many API calls
   useEffect(() => {
-    const filtered = products.filter((product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredProducts(filtered);
-  }, [searchTerm, products]);
+    const delayDebounceFn = setTimeout(() => {
+      onSearch(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, onSearch]);
 
   const handleDelete = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
@@ -50,7 +64,7 @@ const ProductList: React.FC<ProductListProps> = ({
   };
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const ids = e.target.checked ? filteredProducts.map(product => product.id!).filter(id => id !== undefined) : [];
+    const ids = e.target.checked ? products.map(product => product.id!).filter(id => id !== undefined) : [];
     setSelectedProducts(ids);
     onSelectionChange(ids);
   };
@@ -98,7 +112,7 @@ const ProductList: React.FC<ProductListProps> = ({
                 <input
                   type="checkbox"
                   onChange={handleSelectAll}
-                  checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                  checked={selectedProducts.length === products.length && products.length > 0}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
               </th>
@@ -111,7 +125,7 @@ const ProductList: React.FC<ProductListProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {filteredProducts.map((product) => {
+            {products.map((product) => {
               const isOutOfStock = product.stock === 0;
               return (
                 <tr key={product.id} className="hover:bg-gray-50">
@@ -184,6 +198,20 @@ const ProductList: React.FC<ProductListProps> = ({
             })}
           </tbody>
         </table>
+      </div>
+
+      <div className="mt-4 p-4 border-t border-gray-200">
+        <Pagination
+          key={`pagination-${currentPage}-${totalPages}`}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={(page) => {
+            console.log("ProductList passing page change:", page);
+            onPageChange(page);
+          }}
+        />
       </div>
     </div>
   );

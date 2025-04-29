@@ -80,7 +80,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories, onSub
       console.log('Final category data:', updatedCategory);
 
       onSubmit(updatedCategory);
-      toast.success(category ? `Category "${updatedCategory.name}" updated successfully` : `Category "${updatedCategory.name}" created successfully`);
       router.push('/admin/categories');
       router.refresh();
     } catch (error) {
@@ -99,57 +98,54 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories, onSub
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Image</label>
-        <ImageUpload
-          images={formData.image ? [formData.image] : []}
-          onChange={(images) => {
-            console.log('Image upload onChange:', images);
-            setFormData(prev => {
-              const newData = { ...prev, image: images[0] };
-              console.log('Updated formData:', newData);
-              return newData;
-            });
-          }}
-          label="Category Image"
-          multiple={false}
-          maxFiles={1}
-          folder="categories"
-        />
+      <div className="flex items-start gap-4">
+        <label className="w-40 font-medium mt-2">Image</label>
+        <div className="flex-1">
+          <ImageUpload
+            images={formData.image ? [formData.image] : []}
+            onChange={(images) => {
+              console.log('Image upload onChange:', images);
+              setFormData(prev => {
+                const newData = { ...prev, image: images[0] };
+                console.log('Updated formData:', newData);
+                return newData;
+              });
+            }}
+            label="Category Image"
+            multiple={false}
+            maxFiles={1}
+            folder="categories"
+          />
+        </div>
       </div>
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          Name
-        </label>
+
+      <div className="flex items-center gap-4">
+        <label className="w-40 font-medium">Name<span className="text-red-500">*</span></label>
         <input
           type="text"
           id="name"
           value={formData.name}
           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
           required
         />
       </div>
 
-      <div>
-        <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
-          Slug
-        </label>
+      <div className="flex items-center gap-4">
+        <label className="w-40 font-medium">Slug<span className="text-red-500">*</span></label>
         <input
           type="text"
           id="slug"
           value={formData.slug}
           onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
           required
         />
       </div>
 
-      <div>
-        <div className='grid'>
-          <label className="block text-sm font-medium text-gray-700">
-            Parent Category
-          </label>
+      <div className="flex items-start gap-4">
+        <label className="w-40 font-medium mt-2">Parent Category</label>
+        <div className="flex-1">
           {formData.parentId && (
             <div className="text-md mb-2 font-bold flex items-center justify-between">
               <span>
@@ -167,32 +163,28 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories, onSub
               </button>
             </div>
           )}
+          <CategoryTreeSelect
+            categories={filteredCategories}
+            value={formData.parentId}
+            onChange={(value) => setFormData(prev => ({ ...prev, parentId: value }))}
+            currentCategoryId={category?.id}
+          />
         </div>
-        <CategoryTreeSelect
-          categories={filteredCategories}
-          value={formData.parentId}
-          onChange={(value) => setFormData(prev => ({ ...prev, parentId: value }))}
-          currentCategoryId={category?.id}
-        />
       </div>
 
-      <div>
-        <label htmlFor="sortOrder" className="block text-sm font-medium text-gray-700">
-          Sort Order
-        </label>
+      <div className="flex items-center gap-4">
+        <label className="w-40 font-medium">Sort Order</label>
         <input
           type="number"
           id="sortOrder"
           value={formData.sortOrder || 0}
           onChange={(e) => setFormData(prev => ({ ...prev, sortOrder: parseInt(e.target.value) || 0 }))}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
         />
       </div>
 
-      <div className="flex items-center">
-        <label htmlFor="published" className="block text-sm font-medium text-gray-700 mr-3">
-          Published
-        </label>
+      <div className="flex items-center gap-4">
+        <label className="w-40 font-medium">Published</label>
         <ToggleSwitch
           isOn={formData.published === true}
           onToggle={(val) => setFormData(prev => ({ ...prev, published: val }))}
@@ -219,3 +211,4 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories, onSub
 };
 
 export default CategoryForm; 
+

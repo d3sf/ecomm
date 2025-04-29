@@ -5,14 +5,24 @@ import Image from 'next/image';
 
 interface ProductImage {
   url: string;
+  publicId?: string;
 }
 
 interface ProductImageGalleryProps {
   images: ProductImage[];
+  defaultImagePublicId?: string;
 }
 
-export default function ProductImageGallery({ images }: ProductImageGalleryProps) {
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+export default function ProductImageGallery({ images, defaultImagePublicId }: ProductImageGalleryProps) {
+  // Find the index of the default image if it exists
+  const findDefaultImageIndex = () => {
+    if (!defaultImagePublicId) return 0;
+    
+    const index = images.findIndex(img => img.publicId === defaultImagePublicId);
+    return index >= 0 ? index : 0;
+  };
+
+  const [selectedImageIndex, setSelectedImageIndex] = useState(findDefaultImageIndex());
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [windowWidth, setWindowWidth] = useState(0);
@@ -30,6 +40,11 @@ export default function ProductImageGallery({ images }: ProductImageGalleryProps
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Update selected image index when defaultImagePublicId changes
+  useEffect(() => {
+    setSelectedImageIndex(findDefaultImageIndex());
+  }, [defaultImagePublicId, images]);
   
   // If no images are provided, use a placeholder
   const displayImages = images.length > 0 
@@ -90,8 +105,8 @@ export default function ProductImageGallery({ images }: ProductImageGalleryProps
                 selectedImageIndex === index 
                   ? 'border-blue-500 opacity-100' 
                   : 'border-gray-200 opacity-80 hover:opacity-100'
-              }`}
-              aria-label={`View image ${index + 1}`}
+              }${image.publicId === defaultImagePublicId ? ' ring-2 ring-green-400' : ''}`}
+              aria-label={`View image ${index + 1}${image.publicId === defaultImagePublicId ? ' (Default)' : ''}`}
             >
               <Image 
                 src={image.url}
@@ -99,6 +114,11 @@ export default function ProductImageGallery({ images }: ProductImageGalleryProps
                 fill
                 className="object-cover"
               />
+              {image.publicId === defaultImagePublicId && (
+                <span className="absolute bottom-0 right-0 bg-green-500 text-white text-xs px-1 z-10">
+                  ✓
+                </span>
+              )}
             </button>
           ))}
         </div>

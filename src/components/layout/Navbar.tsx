@@ -6,9 +6,11 @@ import { Menu } from 'lucide-react';
 import SearchInput from '@/components/SearchInput';
 import CartIcon from '@/components/cart/CartIcon';
 import UserDropdown from '@/components/UserDropdown';
+import LoginModal from '@/components/auth/LoginModal';
 
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-md">
@@ -48,7 +50,7 @@ export default function Navbar() {
             
             <CartIcon />
             
-            <UserDropdown />
+            <UserDropdown onLoginClick={() => setIsLoginModalOpen(true)} />
           </div>
         </div>
       </div>
@@ -59,6 +61,12 @@ export default function Navbar() {
           <SearchInput />
         </div>
       )}
+
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
     </nav>
   );
 }

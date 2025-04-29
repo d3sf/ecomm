@@ -2,6 +2,47 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/route";
+import { Session } from "next-auth";
+
+// Helper function to find user from session
+async function findUserFromSession(session: Session | null) {
+  if (!session?.user) return null;
+  
+  // Try finding by ID first
+  if (session.user.id) {
+    try {
+      const userId = parseInt(session.user.id);
+      if (!isNaN(userId)) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (user) return user;
+      }
+    } catch (e) {
+      console.error("Error finding user by ID:", e);
+    }
+  }
+
+  // Try finding by phone if available
+  if (session.user.phone) {
+    try {
+      const user = await prisma.user.findFirst({ where: { phone: session.user.phone } });
+      if (user) return user;
+    } catch (e) {
+      console.error("Error finding user by phone:", e);
+    }
+  }
+
+  // Try finding by email if available
+  if (session.user.email) {
+    try {
+      const user = await prisma.user.findFirst({ where: { email: session.user.email } });
+      if (user) return user;
+    } catch (e) {
+      console.error("Error finding user by email:", e);
+    }
+  }
+
+  return null;
+}
 
 export async function GET() {
   try {
@@ -13,19 +54,13 @@ export async function GET() {
     // Debugging: Log the session user
     console.log("Session user:", session.user);
 
-    // Find user by email instead of ID to avoid integer overflow issues
-    if (!session.user.email) {
-      return NextResponse.json({ error: "User email not found" }, { status: 400 });
-    }
+    // Find user using helper function
+    const user = await findUserFromSession(session);
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user.email
-      }
-    });
-
+    // If user not found, return empty addresses array
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      console.log("User not found in database, returning empty addresses");
+      return NextResponse.json([]);
     }
 
     const addresses = await prisma.address.findMany({
@@ -51,16 +86,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!session.user.email) {
-      return NextResponse.json({ error: "User email not found" }, { status: 400 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user.email
-      }
-    });
-
+    // Find user using helper function
+    const user = await findUserFromSession(session);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -125,16 +152,8 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!session.user.email) {
-      return NextResponse.json({ error: "User email not found" }, { status: 400 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user.email
-      }
-    });
-
+    // Find user using helper function
+    const user = await findUserFromSession(session);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -183,16 +202,8 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!session.user.email) {
-      return NextResponse.json({ error: "User email not found" }, { status: 400 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user.email
-      }
-    });
-
+    // Find user using helper function
+    const user = await findUserFromSession(session);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
