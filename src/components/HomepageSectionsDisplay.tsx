@@ -62,6 +62,7 @@ export default function HomepageSectionsDisplay() {
               categoryName={section.category.name}
               products={section.category.products}
               categorySlug={section.category.slug}
+              categoryId={section.category.id}
             />
           </div>
         ))}

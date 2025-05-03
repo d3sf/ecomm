@@ -75,7 +75,7 @@ export default function SearchResults() {
   const topProducts = products.slice(0, 5);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-[1440px] mx-auto px-4 py-8">
       {/* Top Matches Section */}
       {topProducts.length > 0 && (
         <div className="mb-8">

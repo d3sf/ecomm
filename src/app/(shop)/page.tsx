@@ -25,7 +25,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8">
+    <main className="max-w-[1440px] mx-auto px-4 py-8">
       {/* Welcome Section */}
       <div className="mb-12">
         <h1 className="text-4xl font-bold text-center text-blue-700 mb-6">
@@ -47,7 +47,7 @@ export default function Home() {
       </div>
 
       {/* Product Listings Section */}
-      <div className="mt-8 ">
+      <div className="mt-8">
         <HomepageSectionsDisplay />
       </div>
     </main>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { PlusIcon, MinusIcon } from 'lucide-react';
 
 interface AddToCartButtonProps {
@@ -29,14 +29,14 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
     setQuantity(initialQuantity);
   }, [initialQuantity]);
 
-  const handleAddToCart = () => {
+  const handleIncrement = useCallback(() => {
     const newQuantity = quantity + 1;
     setQuantity(newQuantity);
     onAddToCart(productId, newQuantity);
-  };
+  }, [productId, quantity, onAddToCart]);
 
-  const decreaseQuantity = () => {
-    if (quantity > 1) {
+  const handleDecrement = useCallback(() => {
+    if (quantity > 0) {
       const newQuantity = quantity - 1;
       setQuantity(newQuantity);
       onAddToCart(productId, newQuantity);
@@ -45,13 +45,13 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
       setQuantity(0);
       onAddToCart(productId, 0); // This will trigger the removeFromCart in the parent
     }
-  };
+  }, [productId, quantity, onAddToCart]);
 
   return (
     <div className={`w-full ${className}`}>
       {quantity === 0 ? (
         <button
-          onClick={handleAddToCart}
+          onClick={handleIncrement}
           className={`w-full py-1.5 px-3 rounded-md border ${borderColor} ${textColor} ${backgroundColor} hover:opacity-80 transition-opacity text-sm font-medium`}
         >
           Add
@@ -59,15 +59,16 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
       ) : (
         <div className={`flex items-center justify-between py-1 px-2 rounded-md border ${borderColor} ${backgroundColor}`}>
           <button
-            onClick={decreaseQuantity}
+            onClick={handleDecrement}
             className={`${textColor} p-1 hover:bg-green-100 rounded-full`}
             aria-label="Decrease quantity"
+            disabled={quantity === 0}
           >
             <MinusIcon size={16} />
           </button>
           <span className={`${textColor} text-sm font-medium`}>{quantity}</span>
           <button
-            onClick={handleAddToCart}
+            onClick={handleIncrement}
             className={`${textColor} p-1 hover:bg-green-100 rounded-full`}
             aria-label="Increase quantity"
           >

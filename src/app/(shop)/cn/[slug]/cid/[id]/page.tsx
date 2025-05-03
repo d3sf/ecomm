@@ -26,7 +26,7 @@ export default async function CategoryPage({ params }: PageProps) {
     console.log("Products count:", products.length);
 
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-[1440px] mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {/* Top Bar */}
           <div className="bg-white-600 text-black p-4">

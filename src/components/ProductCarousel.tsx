@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import ProductCard from '@/components/product/ProductCard';
@@ -25,11 +25,14 @@ interface ProductCarouselProps {
   categoryName: string;
   products: Product[];
   categorySlug: string;
+  categoryId: number;
 }
 
-export default function ProductCarousel({ categoryName, products, categorySlug }: ProductCarouselProps) {
+export default function ProductCarousel({ categoryName, products, categorySlug, categoryId }: ProductCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [productsPerView, setProductsPerView] = useState(6);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Update products per view based on screen size
   const updateProductsPerView = () => {
@@ -46,14 +49,18 @@ export default function ProductCarousel({ categoryName, products, categorySlug }
   });
 
   const nextSlide = () => {
-    if (currentIndex + productsPerView < products.length) {
-      setCurrentIndex(currentIndex + 1);
+    if (currentIndex + productsPerView < products.length && !isAnimating) {
+      setIsAnimating(true);
+      setCurrentIndex(currentIndex + 5);
+      setTimeout(() => setIsAnimating(false), 500);
     }
   };
 
   const prevSlide = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
+    if (currentIndex > 0 && !isAnimating) {
+      setIsAnimating(true);
+      setCurrentIndex(currentIndex - 5);
+      setTimeout(() => setIsAnimating(false), 500);
     }
   };
 
@@ -83,24 +90,29 @@ export default function ProductCarousel({ categoryName, products, categorySlug }
     return [{ url: '/placeholder.png' }];
   };
 
-  const visibleProducts = products.slice(currentIndex, currentIndex + productsPerView);
-
   return (
     <div className="relative w-full">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">{categoryName}</h2>
         <Link 
-          href={`/category/${categorySlug}`}
+          href={`/cn/${categorySlug}/cid/${categoryId}`}
           className="text-blue-500 hover:text-blue-600 font-medium"
         >
           See All
         </Link>
       </div>
 
-      <div className="relative w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-          {visibleProducts.map((product) => (
-            <div key={product.id} className="w-full p-2">
+      <div className="relative w-full overflow-hidden">
+        <div 
+          ref={containerRef}
+          className="flex transition-transform duration-500 ease-in-out"
+          style={{
+            transform: `translateX(-${currentIndex * (192 + 32)}px)`,
+            gap: '2rem'
+          }}
+        >
+          {products.map((product) => (
+            <div key={product.id} className="flex-shrink-0 w-48">
               <ProductCard
                 product={{
                   id: product.id,
@@ -120,6 +132,7 @@ export default function ProductCarousel({ categoryName, products, categorySlug }
           <button
             onClick={prevSlide}
             className="absolute left-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 z-10"
+            disabled={isAnimating}
           >
             <ChevronLeft size={24} />
           </button>
@@ -129,6 +142,7 @@ export default function ProductCarousel({ categoryName, products, categorySlug }
           <button
             onClick={nextSlide}
             className="absolute right-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 z-10"
+            disabled={isAnimating}
           >
             <ChevronRight size={24} />
           </button>

@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { X } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { ProductType } from "@/lib/zodvalidation";
 import AddToCartButton from "./AddToCartButton";
-import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
@@ -20,26 +19,12 @@ interface CartItemWithDetails extends Omit<ProductType, 'quantity'> {
   originalProductId: string | number;
 }
 
-interface Address {
-  id: number;
-  fullName: string;
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  isDefault: boolean;
-}
-
 export default function CartModal({ isOpen, onClose }: CartModalProps) {
   const { items, addToCart } = useCart();
-  const { data: session } = useSession();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [cartItems, setCartItems] = useState<CartItemWithDetails[]>([]);
   const [subtotal, setSubtotal] = useState(0);
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -59,73 +44,51 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
       const price = typeof item.price === 'string'
         ? parseFloat(item.price)
         : item.price;
-      // Use item.cartQuantity directly from our stored data
       total += price * item.cartQuantity;
     }
     setSubtotal(total);
   }, [cartItems]);
 
-  useEffect(() => {
-    // Fetch product details for each cart item
-    const fetchCartItems = async () => {
-      try {
-        const response = await fetch('/api/products');
-        const { products } = await response.json();
+  const fetchCartItems = useCallback(async () => {
+    try {
+      const response = await fetch('/api/products');
+      const { products } = await response.json();
 
-        const itemsWithDetails = items.map(item => {
-          // Find the matching product
-          const product = products.find((p: ProductType) =>
-            String(p.id) === String(item.productId)
-          );
+      const itemsWithDetails = items.map(item => {
+        const product = products.find((p: ProductType) =>
+          String(p.id) === String(item.productId)
+        );
 
-          if (product) {
-            const { ...productWithoutQuantity } = product;
-            // Store the original productId from the cart context to ensure proper updates
-            return {
-              ...productWithoutQuantity,
-              cartQuantity: item.quantity,
-              // Store the original productId to ensure we're using the exact same reference 
-              originalProductId: item.productId
-            };
-          }
-          return null;
-        }).filter(Boolean) as CartItemWithDetails[];
+        if (product) {
+          const { ...productWithoutQuantity } = product;
+          return {
+            ...productWithoutQuantity,
+            cartQuantity: item.quantity,
+            originalProductId: item.productId
+          };
+        }
+        return null;
+      }).filter(Boolean) as CartItemWithDetails[];
 
-        setCartItems(itemsWithDetails);
-      } catch (error) {
-        console.error('Error fetching cart items:', error);
-      }
-    };
-
-    fetchCartItems();
+      setCartItems(itemsWithDetails);
+    } catch (error) {
+      console.error('Error fetching cart items:', error);
+    }
   }, [items]);
 
   useEffect(() => {
-    // Fetch user addresses
-    const fetchAddresses = async () => {
-      if (!session?.user) return;
+    fetchCartItems();
+  }, [fetchCartItems]);
 
-      try {
-        const response = await fetch('/api/addresses');
-        if (!response.ok) throw new Error('Failed to fetch addresses');
-        const data = await response.json();
-        setAddresses(data);
-        
-        // Set default address if available
-        const defaultAddress = data.find((addr: Address) => addr.isDefault);
-        if (defaultAddress) {
-          setSelectedAddressId(defaultAddress.id);
-        }
-      } catch (error) {
-        console.error('Error fetching addresses:', error);
-        toast.error('Failed to load addresses');
-      }
-    };
+  const handleProceedToCheckout = useCallback(() => {
+    if (items.length === 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
+    onClose();
+    router.push('/checkout');
+  }, [items.length, onClose, router]);
 
-    fetchAddresses();
-  }, [session]);
-
-  // Use the direct addToCart function from context to ensure state consistency
   if (!isMounted) return null;
 
   return (
@@ -205,50 +168,6 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
               )}
             </div>
 
-            {/* Shipping Address Selection */}
-            {items.length > 0 && (
-              <div className="border-t border-gray-200 px-4 py-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Shipping Address</h3>
-                {addresses.length === 0 ? (
-                  <p className="text-sm text-gray-500">
-                    No addresses found. Please add an address in your account settings.
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {addresses.map((address) => (
-                      <div
-                        key={address.id}
-                        className={`p-4 border rounded-lg cursor-pointer ${
-                          selectedAddressId === address.id
-                            ? "border-indigo-500 bg-indigo-50"
-                            : "border-gray-200"
-                        }`}
-                        onClick={() => setSelectedAddressId(address.id)}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="font-medium">{address.fullName}</p>
-                            <p className="text-sm text-gray-500">{address.addressLine1}</p>
-                            {address.addressLine2 && (
-                              <p className="text-sm text-gray-500">{address.addressLine2}</p>
-                            )}
-                            <p className="text-sm text-gray-500">
-                              {address.city}, {address.state} {address.postalCode}
-                            </p>
-                          </div>
-                          {address.isDefault && (
-                            <span className="text-xs font-medium text-indigo-600">
-                              Default
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Footer */}
             <div className="border-t border-gray-200 px-4 py-6">
               <div className="flex justify-between text-base font-medium text-gray-900">
@@ -260,15 +179,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
               <div className="mt-6">
                 <button
                   className="w-full rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={() => {
-                    if (items.length === 0) {
-                      toast.error('Your cart is empty');
-                      return;
-                    }
-                    
-                    onClose();
-                    router.push('/checkout');
-                  }}
+                  onClick={handleProceedToCheckout}
                   disabled={items.length === 0}
                 >
                   Proceed to Checkout

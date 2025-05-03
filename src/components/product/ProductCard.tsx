@@ -57,13 +57,13 @@ const ProductCard: React.FC<ProductCardProps> = (props) => {
         // If there's a default image ID, try to find that image
         if (defaultImagePublicId && images.length > 1) {
           // Find the default image
-          const defaultImage = images.find(img => 
-            typeof img === 'object' && 
-            img !== null && 
-            'publicId' in img && 
+          const defaultImage = images.find(img =>
+            typeof img === 'object' &&
+            img !== null &&
+            'publicId' in img &&
             img.publicId === defaultImagePublicId
           );
-          
+
           // Use the default image if found
           if (defaultImage && 'url' in defaultImage && defaultImage.url) {
             imageUrl = defaultImage.url;
@@ -120,40 +120,38 @@ const ProductCard: React.FC<ProductCardProps> = (props) => {
 
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow w-48">
-      <Link href={`/prdn/${slug}/prid/${id}`}>
-        <div className="relative h-[140px] w-[140px] mx-auto ">
+      {/* Image Section */}
+      <div className="relative h-[140px] w-[140px] mx-auto mt-4">
+        <Link href={`/prdn/${slug}/prid/${id}`}>
           <Image
             src={imageUrl}
             alt={name}
             fill
             className="object-cover"
-            
           />
-        </div>
-        <div className="p-4">
-          <h3 className="font-semibold text-md mb-2 h-[3rem] line-clamp-2">{name}</h3>
+        </Link>
+      </div>
 
-          {/* Quantity */}
-          {/* <p className="text-gray-600 text-sm mb-2">{formattedQuantity}</p> */}
-          <p className="text-gray-600 text-sm mb-2">{quantity}</p>
+      {/* Product Details Section */}
+      <div className="p-4">
+        <Link href={`/prdn/${slug}/prid/${id}`}>
+          <h3 className="font-semibold text-sm mb-1 h-[3rem] line-clamp-2">{name}</h3>
+          <p className="text-gray-600 text-sm mb-1">{quantity}</p>
+        </Link>
 
-        </div>
-
-      </Link>
-      <div className="flex justify-between px-4 pb-4">
-        <div>
-          <p className=" text-sm font-semibold">₹{formattedPrice}</p>
-        </div>
-        <div className="cursor-pointer">
-          <AddToCartButton
-            productId={id}
-            onAddToCart={handleAddToCart}
-            initialQuantity={currentQuantity}
-          />
+        <div className="flex justify-between items-center mt-2">
+          <p className="text-sm font-semibold">₹{formattedPrice}</p>
+          <div className="cursor-pointer">
+            <AddToCartButton
+              productId={id}
+              onAddToCart={handleAddToCart}
+              initialQuantity={currentQuantity}
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 };
-
+  
 export default ProductCard;

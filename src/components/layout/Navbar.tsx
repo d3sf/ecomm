@@ -6,29 +6,27 @@ import { Menu } from 'lucide-react';
 import SearchInput from '@/components/SearchInput';
 import CartIcon from '@/components/cart/CartIcon';
 import UserDropdown from '@/components/UserDropdown';
-import LoginModal from '@/components/auth/LoginModal';
 
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-md">
       {/* Top Bar */}
       <div className="bg-blue-600 text-white py-2">
-        <div className="max-w-6xl mx-auto px-4">
+        <div className="max-w-[1440px] mx-auto px-4">
           <p className="text-sm text-center">Free Delivery on Orders Above ₹499</p>
         </div>
       </div>
 
       {/* Main Navbar */}
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-[1440px] mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Left - Logo */}
           <div className="flex items-center">
-            <button className="p-2 hover:bg-gray-100 rounded-full lg:hidden">
+            {/* <button className="p-2 hover:bg-gray-100 rounded-full lg:hidden">
               <Menu size={24} />
-            </button>
+            </button> */}
             <Link href="/" className="flex items-center">
               <span className="text-2xl font-bold text-blue-600">QuickShop</span>
             </Link>
@@ -50,7 +48,7 @@ export default function Navbar() {
             
             <CartIcon />
             
-            <UserDropdown onLoginClick={() => setIsLoginModalOpen(true)} />
+            <UserDropdown />
           </div>
         </div>
       </div>
@@ -61,12 +59,6 @@ export default function Navbar() {
           <SearchInput />
         </div>
       )}
-
-      {/* Login Modal */}
-      <LoginModal 
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-      />
     </nav>
   );
 }

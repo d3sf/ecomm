@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { CreditCard, Banknote, Truck } from 'lucide-react';
+import { CreditCard, Banknote } from 'lucide-react';
 
 interface PaymentMethodSelectionProps {
   paymentMethod: string;
@@ -22,25 +22,17 @@ const PaymentMethodSelection: React.FC<PaymentMethodSelectionProps> = ({
       icon: Banknote
     },
     {
-      id: 'CARD',
-      name: 'Credit Card',
-      description: 'Coming soon - Pay with credit/debit card.',
-      icon: CreditCard,
-      disabled: true
-    },
-    {
-      id: 'UPI',
-      name: 'UPI Payment',
-      description: 'Coming soon - Pay using UPI.',
-      icon: Truck,
-      disabled: true
+      id: 'RAZORPAY',
+      name: 'Razorpay',
+      description: 'Pay securely with credit/debit card, UPI, or net banking via Razorpay.',
+      icon: CreditCard
     }
   ];
 
   const handleSelectPaymentMethod = (methodId: string) => {
     if (readOnly) return;
     const method = paymentMethods.find(m => m.id === methodId);
-    if (method && !method.disabled) {
+    if (method) {
       setPaymentMethod(methodId);
     }
   };
@@ -74,24 +66,17 @@ const PaymentMethodSelection: React.FC<PaymentMethodSelectionProps> = ({
           <div
             key={method.id}
             className={`p-4 border rounded-lg ${
-              method.disabled 
-                ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed" 
-                : paymentMethod === method.id 
-                  ? "border-indigo-500 bg-indigo-50 cursor-pointer" 
-                  : "border-gray-200 hover:border-gray-300 cursor-pointer"
+              paymentMethod === method.id 
+                ? "border-indigo-500 bg-indigo-50 cursor-pointer" 
+                : "border-gray-200 hover:border-gray-300 cursor-pointer"
             }`}
             onClick={() => handleSelectPaymentMethod(method.id)}
           >
             <div className="flex items-center">
-              <method.icon className={`h-5 w-5 ${method.disabled ? 'text-gray-300' : 'text-gray-500'} mr-3`} />
+              <method.icon className="h-5 w-5 text-gray-500 mr-3" />
               <div>
                 <div className="flex items-center">
                   <p className="font-medium">{method.name}</p>
-                  {method.disabled && (
-                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      Coming Soon
-                    </span>
-                  )}
                 </div>
                 <p className="text-sm text-gray-500">{method.description}</p>
               </div>

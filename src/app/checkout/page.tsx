@@ -9,6 +9,7 @@ import AddressSelection from "./components/AddressSelection";
 import PaymentMethodSelection from "./components/PaymentMethodSelection";
 import OrderSummary from "./components/OrderSummary";
 import CheckoutSteps from "./components/CheckoutSteps";
+import RazorpayPayment from "./components/RazorpayPayment";
 
 const steps = ["Address", "Payment", "Review"];
 
@@ -19,6 +20,12 @@ interface CartItem {
   price: number | string;
   images?: { url: string }[];
   originalProductId: string | number;
+}
+
+interface PaymentVerificationData {
+  success: boolean;
+  message: string;
+  order: Record<string, unknown>;
 }
 
 export default function CheckoutPage() {
@@ -32,6 +39,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<string>("COD");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subtotal, setSubtotal] = useState(0);
+  const [orderId, setOrderId] = useState<number | null>(null);
 
   // Check if user is authenticated
   useEffect(() => {
@@ -99,7 +107,11 @@ export default function CheckoutPage() {
     }
 
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      if (currentStep === 1 && paymentMethod === 'RAZORPAY') {
+        handleCreateOrder();
+      } else {
+        setCurrentStep(currentStep + 1);
+      }
     }
   };
 
@@ -109,7 +121,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const handlePlaceOrder = async () => {
+  const handleCreateOrder = async () => {
     if (!session?.user) {
       toast.error('Please sign in to checkout');
       router.push('/login');
@@ -149,15 +161,44 @@ export default function CheckoutPage() {
         throw new Error(data.error || 'Failed to process checkout');
       }
 
-      clearCart();
-      toast.success('Order placed successfully!');
-      router.push(`/orders/${data.id}`);
+      setOrderId(data.id);
+
+      if (paymentMethod === 'COD') {
+        clearCart();
+        toast.success('Order placed successfully!');
+        router.push(`/orders/${data.id}`);
+      } else if (paymentMethod === 'RAZORPAY') {
+        // Proceed to payment step with Razorpay
+        setCurrentStep(currentStep + 1);
+      }
     } catch (error) {
       console.error('Checkout error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to process checkout');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handlePlaceOrder = async () => {
+    if (paymentMethod === 'COD') {
+      handleCreateOrder();
+    } else if (paymentMethod === 'RAZORPAY') {
+      if (!orderId) {
+        // Create order first
+        await handleCreateOrder();
+      }
+    }
+  };
+
+  const handlePaymentSuccess = (paymentData: PaymentVerificationData) => {
+    clearCart();
+    toast.success(`Payment successful! ${paymentData.message}`);
+    router.push(`/orders/${orderId}`);
+  };
+
+  const handlePaymentError = (error: Error) => {
+    toast.error(`Payment failed: ${error.message}`);
+    // You could redirect to a payment failure page or stay on checkout
   };
 
   if (status === "loading" || isLoading) {
@@ -213,11 +254,24 @@ export default function CheckoutPage() {
                       readOnly
                     />
                   </div>
+
+                  {/* Razorpay Payment Button */}
+                  {paymentMethod === 'RAZORPAY' && orderId && (
+                    <div className="mt-6">
+                      <h3 className="text-sm font-medium text-gray-500 mb-2">Complete Payment</h3>
+                      <RazorpayPayment 
+                        orderId={orderId} 
+                        amount={subtotal}
+                        onPaymentSuccess={handlePaymentSuccess}
+                        onPaymentError={handlePaymentError}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
             
-            <div className="flex justify-between mt-6">
+            <div className="flex items-center justify-between mt-6">
               {currentStep > 0 && (
                 <button
                   onClick={handlePreviousStep}
@@ -230,15 +284,15 @@ export default function CheckoutPage() {
               {currentStep < steps.length - 1 ? (
                 <button
                   onClick={handleNextStep}
-                  className="ml-auto bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700"
+                  className={`${currentStep > 0 ? 'ml-auto' : ''} bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700`}
                 >
                   Continue
                 </button>
               ) : (
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={isSubmitting}
-                  className="ml-auto bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                  disabled={isSubmitting || (paymentMethod === 'RAZORPAY')}
+                  className={`${currentStep > 0 ? 'ml-auto' : ''} bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50`}
                 >
                   {isSubmitting ? "Processing..." : "Place Order"}
                 </button>

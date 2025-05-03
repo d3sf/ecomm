@@ -21,7 +21,8 @@ export default function SessionProviderWrapper({
     <SessionProvider
       basePath={basePath}
       refetchInterval={5 * 60} // Refetch session every 5 minutes
-      refetchOnWindowFocus={true}
+      refetchOnWindowFocus={false} // Disable refetch on window focus to prevent unnecessary requests
+      refetchWhenOffline={false} // Disable refetch when offline
     >
       {children}
     </SessionProvider>

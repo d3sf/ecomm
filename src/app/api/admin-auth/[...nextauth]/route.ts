@@ -3,10 +3,8 @@ import type { NextAuthOptions, User, Account, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
 
 interface AdminUser extends User {
   type: "admin";
@@ -34,34 +32,39 @@ export const adminAuthOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Please enter email and password");
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            throw new Error("Please enter email and password");
+          }
+
+          const admin = await prisma.adminUser.findUnique({
+            where: { email: credentials.email }
+          });
+
+          if (!admin) {
+            throw new Error("Invalid credentials");
+          }
+
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password,
+            admin.passwordHash
+          );
+
+          if (!isPasswordValid) {
+            throw new Error("Invalid credentials");
+          }
+
+          return {
+            id: admin.id.toString(),
+            email: admin.email,
+            name: admin.name || undefined,
+            type: "admin",
+            role: admin.role
+          } as AdminUser;
+        } catch (error) {
+          console.error("Authorization error:", error);
+          return null;
         }
-
-        const admin = await prisma.adminUser.findUnique({
-          where: { email: credentials.email }
-        });
-
-        if (!admin) {
-          throw new Error("Invalid credentials");
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          admin.passwordHash
-        );
-
-        if (!isPasswordValid) {
-          throw new Error("Invalid credentials");
-        }
-
-        return {
-          id: admin.id.toString(),
-          email: admin.email,
-          name: admin.name || undefined,
-          type: "admin",
-          role: admin.role
-        } as AdminUser;
       }
     })
   ],
@@ -72,27 +75,32 @@ export const adminAuthOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account }: { user: User; account: Account | null }) {
-      if (account?.provider === "google") {
-        const existingAdmin = await prisma.adminUser.findUnique({
-          where: { email: user.email! }
-        });
-
-        if (!existingAdmin) {
-          const newAdmin = await prisma.adminUser.create({
-            data: {
-              email: user.email!,
-              username: user.email!, // Using email as username
-              name: user.name || "",
-              passwordHash: "", // Empty password for Google auth
-              role: "MANAGER" // Default role for Google sign-in
-            }
+      try {
+        if (account?.provider === "google") {
+          const existingAdmin = await prisma.adminUser.findUnique({
+            where: { email: user.email! }
           });
-          user.id = newAdmin.id.toString();
-        } else {
-          user.id = existingAdmin.id.toString();
+
+          if (!existingAdmin) {
+            const newAdmin = await prisma.adminUser.create({
+              data: {
+                email: user.email!,
+                username: user.email!, // Using email as username
+                name: user.name || "",
+                passwordHash: "", // Empty password for Google auth
+                role: "MANAGER" // Default role for Google sign-in
+              }
+            });
+            user.id = newAdmin.id.toString();
+          } else {
+            user.id = existingAdmin.id.toString();
+          }
         }
+        return true;
+      } catch (error) {
+        console.error("Sign in error:", error);
+        return false;
       }
-      return true;
     },
     async jwt({ token, user }: { token: JWT; user: User | undefined }) {
       if (user) {
@@ -104,9 +112,9 @@ export const adminAuthOptions: NextAuthOptions = {
     },
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
-        // Always fetch the latest user data from the database
-        if (token.id) {
-          try {
+        try {
+          // Always fetch the latest user data from the database
+          if (token.id) {
             const adminUser = await prisma.adminUser.findUnique({
               where: { id: parseInt(token.id as string) },
               select: { 
@@ -123,22 +131,23 @@ export const adminAuthOptions: NextAuthOptions = {
               session.user.email = adminUser.email;
               session.user.role = adminUser.role;
             }
-          } catch (error) {
-            console.error("Error fetching updated user data:", error);
           }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          // Fallback to token data if database fetch fails
+          session.user.id = token.id as string;
+          session.user.type = token.type;
+          session.user.role = token.role;
         }
-        
-        // Fallback to token data if database fetch fails
-        session.user.id = token.id as string;
-        session.user.type = token.type;
-        session.user.role = token.role;
       }
       return session;
     }
   },
   session: {
-    strategy: "jwt"
-  }
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  debug: process.env.NODE_ENV === "development",
 };
 
 const handler = NextAuth(adminAuthOptions);

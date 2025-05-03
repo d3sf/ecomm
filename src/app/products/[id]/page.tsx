@@ -36,7 +36,7 @@ export default function ProductDetails() {
   if (!product) return <div>Product not found</div>;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-[1440px] mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Product Images */}
         <div className="space-y-4">

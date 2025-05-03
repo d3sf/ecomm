@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
-import Link from 'next/link';
 import { Plus } from 'lucide-react';
+import AddressForm from '@/components/address/AddressForm';
 
 interface Address {
   id: number;
@@ -32,6 +32,50 @@ const AddressSelection: React.FC<AddressSelectionProps> = ({
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [isAddingAddress, setIsAddingAddress] = useState(false);
+
+  const handleAddAddress = useCallback(async (formData: {
+    fullName: string;
+    phoneNumber: string;
+    addressLine1: string;
+    addressLine2?: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    isDefault: boolean;
+    addressLabel: "HOME" | "WORK" | "OTHER";
+    customLabel?: string;
+  }) => {
+    try {
+      const response = await fetch('/api/addresses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) throw new Error('Failed to add address');
+
+      const newAddress = await response.json();
+      setAddresses(prev => [...prev, newAddress]);
+      setSelectedAddressId(newAddress.id);
+      setIsAddingAddress(false);
+      toast.success('Address added successfully');
+    } catch (error) {
+      console.error('Error adding address:', error);
+      toast.error('Failed to add address');
+    }
+  }, [setSelectedAddressId]);
+
+  const handleSelectAddress = useCallback((addressId: number) => {
+    if (readOnly) return;
+    setSelectedAddressId(addressId);
+    const address = addresses.find(addr => addr.id === addressId);
+    if (address) {
+      setSelectedAddress(address);
+    }
+  }, [readOnly, setSelectedAddressId, addresses]);
 
   useEffect(() => {
     const fetchAddresses = async () => {
@@ -73,15 +117,6 @@ const AddressSelection: React.FC<AddressSelectionProps> = ({
     fetchAddresses();
   }, [session, selectedAddressId, setSelectedAddressId]);
 
-  const handleSelectAddress = (addressId: number) => {
-    if (readOnly) return;
-    setSelectedAddressId(addressId);
-    const address = addresses.find(addr => addr.id === addressId);
-    if (address) {
-      setSelectedAddress(address);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="bg-white shadow sm:rounded-lg p-6 mb-6">
@@ -119,25 +154,35 @@ const AddressSelection: React.FC<AddressSelectionProps> = ({
     <div className="bg-white shadow sm:rounded-lg p-6 mb-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-medium text-gray-900">Shipping Address</h2>
-        <Link 
-          href="/account/addresses/new"
-          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add New Address
-        </Link>
+        {!isAddingAddress && (
+          <button
+            onClick={() => setIsAddingAddress(true)}
+            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add New Address
+          </button>
+        )}
       </div>
 
-      {addresses.length === 0 ? (
+      {isAddingAddress ? (
+        <div className="border border-gray-200 rounded-lg p-6">
+          <h4 className="text-lg font-medium mb-4">Add New Address</h4>
+          <AddressForm
+            onCancel={() => setIsAddingAddress(false)}
+            onSubmit={handleAddAddress}
+          />
+        </div>
+      ) : addresses.length === 0 ? (
         <div className="text-center py-6">
           <p className="text-gray-500 mb-4">You don&apos;t have any saved addresses.</p>
-          <Link 
-            href="/account/addresses/new"
+          <button
+            onClick={() => setIsAddingAddress(true)}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             <Plus className="mr-2 h-4 w-4" />
             Add Your First Address
-          </Link>
+          </button>
         </div>
       ) : (
         <div className="space-y-4">

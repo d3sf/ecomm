@@ -87,23 +87,32 @@ model HomepageSection {
 
 model User {
   id           Int       @id @default(autoincrement())
-  email        String?   // Optional and not unique
+  email        String?   @unique // Made nullable for phone-based auth
   passwordHash String    @default("") // Default empty string for OTP auth
   name         String?
-  phone        String    @unique // Required and unique
+  phone        String?   // Optional for OTP login
   address      String?
+  emailVerified Boolean  @default(false)
+  verificationToken String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   orders       Order[]
   addresses    Address[]
+
+  @@index([phone])
 }
 
 model Order {
   id                Int         @id @default(autoincrement())
   userId            Int
   totalAmount       Float
-  status            String      @default("PENDING")
+  status            String      @default("PENDING")  //PENDING , PROCESSING, COMPLETED, CANCELLED
   paymentMethod     String      @default("COD")  // COD, CARD, UPI, etc.
+  paymentStatus     String      @default("PENDING") // PENDING, COMPLETED, FAILED
+  razorpayOrderId   String?     // Razorpay order ID
+  razorpayPaymentId String?     // Razorpay payment ID 
+  razorpaySignature String?     // Razorpay signature for verification
+  razorpayPaymentData String?   // JSON string of Razorpay payment data
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
   user              User        @relation(fields: [userId], references: [id])

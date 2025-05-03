@@ -6,11 +6,7 @@ import { User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-interface UserDropdownProps {
-  onLoginClick: () => void;
-}
-
-export default function UserDropdown({ onLoginClick }: UserDropdownProps) {
+export default function UserDropdown() {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -71,15 +67,13 @@ export default function UserDropdown({ onLoginClick }: UserDropdownProps) {
             )
           ) : (
             <>
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  onLoginClick();
-                }}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              <Link
+                href="/login"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => setIsOpen(false)}
               >
                 Login
-              </button>
+              </Link>
             </>
           )}
         </div>
