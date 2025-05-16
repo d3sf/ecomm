@@ -18,7 +18,7 @@ interface OrderSummaryProps {
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({ items, subtotal }) => {
   // Shipping cost could be calculated based on order value or weight
-  const shippingCost = subtotal >= 500 ? 0 : 50;
+  const shippingCost = subtotal >= 500 ? 0 : 30;
   // Calculate tax (e.g., 18% GST)
   const taxRate = 0.18;
   const taxAmount = subtotal * taxRate;

@@ -1,0 +1,3 @@
+Name,Description,Price,Quantity,Stock,Published,Categories,Default Category
+Fresh Tomatoes,Locally sourced fresh tomatoes,30,1 kg,100,TRUE,Vegetables & Fruits; Fresh Vegetables,Vegetables & Fruits
+Organic Spinach,Farm fresh organic spinach,45,500 g,80,TRUE,Vegetables & Fruits; Fresh Vegetables,Vegetables & Fruits

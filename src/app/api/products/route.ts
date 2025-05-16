@@ -68,7 +68,30 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-
+    console.log("Received body in POST /api/products:", JSON.stringify(body, null, 2));
+    console.log("Categories type:", typeof body.categories);
+    console.log("Categories is array:", Array.isArray(body.categories));
+    console.log("Categories value:", body.categories);
+    
+    // Transform categories if it's an array of numbers (categoryIds)
+    if (Array.isArray(body.categories)) {
+      // Check if it's not already in the correct format
+      if (body.categories.length > 0 && typeof body.categories[0] === 'number') {
+        console.log("Transforming categories from array of IDs to correct format");
+        body.categories = body.categories.map((categoryId: number) => ({
+          category: {
+            id: categoryId
+          }
+        }));
+      }
+    }
+    
+    // Fix categories if null
+    if (body.categories === null) {
+      body.categories = [];
+      console.log("Fixed null categories to empty array");
+    }
+    
     // Validate with Zod
     const parsed = ProductSchema.safeParse(body);
     if (!parsed.success) {
@@ -134,7 +157,7 @@ export async function POST(request: Request) {
       }
     });
 
-    console.log("Created product with defaultCategory:", product.defaultCategory);
+    // console.log("Created product with defaultCategory:", product.defaultCategory);
     
     return NextResponse.json(product);
   } catch (error) {

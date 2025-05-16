@@ -3,9 +3,22 @@ import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { CategorySchema } from '@/lib/zodvalidation';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search');
+
+    const where: Prisma.CategoryWhereInput = {};
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { slug: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
     const categories = await prisma.category.findMany({
+      where,
       orderBy: [
         { sortOrder: 'asc' },
         { name: 'asc' }
@@ -89,7 +102,7 @@ export async function POST(request: Request) {
           parentId: data.parentId || null,
           sortOrder: sortOrder,
           published: data.published ?? true,
-          image: data.image || Prisma.JsonNull
+          image: data.image || undefined
         }
       });
       

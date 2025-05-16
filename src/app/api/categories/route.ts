@@ -6,6 +6,28 @@ import { Prisma } from "@prisma/client";
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+    const getAll = searchParams.get('getAll') === 'true';
+    
+    if (getAll) {
+      // Return all categories without pagination
+      const categories = await prisma.category.findMany({
+        include: {
+          children: true,
+        },
+        orderBy: {
+          sortOrder: "asc",
+        },
+      });
+
+      return NextResponse.json({
+        categories,
+        totalCount: categories.length,
+        page: 1,
+        limit: categories.length,
+      });
+    }
+
+    // Paginated response
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const skip = (page - 1) * limit;

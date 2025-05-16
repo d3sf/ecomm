@@ -58,7 +58,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   const { id } = await params;
-  const productId = parseInt(id);
+  const productId = Number(id);
   
   try {
     const body = await req.json();

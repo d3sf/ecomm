@@ -31,11 +31,14 @@ const CustomerList: React.FC<CustomerListProps> = ({
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
 
   useEffect(() => {
-    const filtered = customers.filter((customer) =>
-      customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.phone?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = customers.filter((customer) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        (customer.name?.toLowerCase() || '').includes(searchLower) ||
+        (customer.email?.toLowerCase() || '').includes(searchLower) ||
+        (customer.phone?.toLowerCase() || '').includes(searchLower)
+      );
+    });
     setFilteredCustomers(filtered);
   }, [searchTerm, customers]);
 

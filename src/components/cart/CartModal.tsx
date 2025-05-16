@@ -50,9 +50,35 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
   }, [cartItems]);
 
   const fetchCartItems = useCallback(async () => {
+    if (items.length === 0) {
+      setCartItems([]);
+      return;
+    }
+    
     try {
-      const response = await fetch('/api/products');
+      // Extract product IDs from cart items
+      const productIds = items.map(item => item.productId);
+      
+      // Use the dedicated cart-products API to fetch only the products in the cart
+      const response = await fetch('/api/cart-products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productIds }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      
       const { products } = await response.json();
+      
+      if (!products || !Array.isArray(products)) {
+        console.error('Invalid products data returned from API');
+        toast.error('Failed to load cart items');
+        return;
+      }
 
       const itemsWithDetails = items.map(item => {
         const product = products.find((p: ProductType) =>
@@ -73,6 +99,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
       setCartItems(itemsWithDetails);
     } catch (error) {
       console.error('Error fetching cart items:', error);
+      toast.error('Failed to load cart items');
     }
   }, [items]);
 
@@ -93,8 +120,8 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-50 overflow-hidden ${isOpen ? "block" : "hidden"
-        }`}
+      className={`fixed inset-0 z-50 ${isOpen ? "block" : "hidden"}`}
+      style={{ height: '100vh', overflow: 'hidden' }}
     >
       {/* Backdrop */}
       <div
@@ -104,13 +131,13 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
 
       {/* Modal */}
       <div
-        className={`fixed inset-y-0 right-0 flex max-w-full pl-10 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed inset-y-0 right-0 flex max-w-full pl-10 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        style={{ height: '100vh' }}
       >
-        <div className="w-screen max-w-md">
-          <div className="flex h-full flex-col bg-white shadow-xl">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-6 border-b">
+        <div className="w-screen max-w-md" style={{ height: '100vh' }}>
+          <div className="flex flex-col bg-white shadow-xl" style={{ height: '100vh' }}>
+            {/* Header - Fixed height */}
+            <div className="flex-shrink-0 flex items-center justify-between px-4 py-6 border-b bg-white">
               <h2 className="text-lg font-medium text-gray-900">Shopping Cart</h2>
               <button
                 type="button"
@@ -121,8 +148,8 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
               </button>
             </div>
 
-            {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto px-4 py-6">
+            {/* Cart Items - Flexible height with scrolling */}
+            <div className="flex-grow overflow-y-auto px-4 py-6">
               {items.length === 0 ? (
                 <p className="text-center text-gray-500">Your cart is empty</p>
               ) : (
@@ -168,8 +195,8 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
               )}
             </div>
 
-            {/* Footer */}
-            <div className="border-t border-gray-200 px-4 py-6">
+            {/* Footer - Fixed height */}
+            <div className="flex-shrink-0 border-t border-gray-200 px-4 py-6 bg-white">
               <div className="flex justify-between text-base font-medium text-gray-900">
                 <p>Subtotal</p>
                 <p>

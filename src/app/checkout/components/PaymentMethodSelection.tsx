@@ -19,18 +19,20 @@ const PaymentMethodSelection: React.FC<PaymentMethodSelectionProps> = ({
       id: 'COD',
       name: 'Cash on Delivery',
       description: 'Pay when your order arrives.',
-      icon: Banknote
+      icon: Banknote,
+      disabled: false
     },
     {
       id: 'RAZORPAY',
-      name: 'Razorpay',
+      name: 'Razorpay (Coming Soon)',
       description: 'Pay securely with credit/debit card, UPI, or net banking via Razorpay.',
-      icon: CreditCard
+      icon: CreditCard,
+      disabled: true
     }
   ];
 
-  const handleSelectPaymentMethod = (methodId: string) => {
-    if (readOnly) return;
+  const handleSelectPaymentMethod = (methodId: string, disabled: boolean) => {
+    if (readOnly || disabled) return;
     const method = paymentMethods.find(m => m.id === methodId);
     if (method) {
       setPaymentMethod(methodId);
@@ -67,10 +69,14 @@ const PaymentMethodSelection: React.FC<PaymentMethodSelectionProps> = ({
             key={method.id}
             className={`p-4 border rounded-lg ${
               paymentMethod === method.id 
-                ? "border-indigo-500 bg-indigo-50 cursor-pointer" 
-                : "border-gray-200 hover:border-gray-300 cursor-pointer"
+                ? "border-indigo-500 bg-indigo-50" 
+                : "border-gray-200 hover:border-gray-300"
+            } ${
+              method.disabled 
+                ? "opacity-50 cursor-not-allowed" 
+                : "cursor-pointer"
             }`}
-            onClick={() => handleSelectPaymentMethod(method.id)}
+            onClick={() => handleSelectPaymentMethod(method.id, method.disabled)}
           >
             <div className="flex items-center">
               <method.icon className="h-5 w-5 text-gray-500 mr-3" />

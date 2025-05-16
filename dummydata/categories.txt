@@ -1,0 +1,129 @@
+1. Vegetables & Fruits
+1.1. Fresh Fruits
+1.2. Fresh Vegetables
+1.3. Exotic Fruits & Veggies
+1.4. Organic Produce
+1.5. Cut & Peeled Veggies
+
+2. Dairy & Breakfast
+2.1. Milk
+2.2. Curd & Yogurt
+2.3. Butter & Cream
+2.4. Cheese
+2.5. Eggs
+2.6. Breads & Buns
+2.7. Breakfast Cereals
+
+3. Munchies
+3.1. Chips & Wafers
+3.2. Popcorn & Namkeen
+3.3. Nachos & Dips
+3.4. Biscuits & Cookies
+3.5. Dry Snacks
+3.6. Protein & Energy Bars
+
+4. Cold Drinks & Juices
+4.1. Soft Drinks
+4.2. Fruit Juices
+4.3. Energy & Sports Drinks
+4.4. Flavored Water
+4.5. Mocktails & Mixers
+
+5. Instant & Frozen Food
+5.1. Instant Noodles & Pasta
+5.2. Frozen Veg Snacks
+5.3. Frozen Non-Veg Snacks
+5.4. Ready-to-Eat Meals
+5.5. Soups & Meal Kits
+
+6. Tea, Coffee & Health Drinks
+6.1. Tea (Green, Black, Herbal)
+6.2. Coffee (Ground, Instant, Cold Brew)
+6.3. Malt & Nutrition Drinks
+6.4. Plant-Based & Vegan Drinks
+
+7. Bakery & Biscuits
+7.1. Fresh Cakes & Pastries
+7.2. Buns & Bread Loaves
+7.3. Cookies & Biscuits
+7.4. Wraps & Tortillas
+
+8. Atta, Rice & Dal
+8.1. Wheat Flour (Atta)
+8.2. Rice (Basmati, Boiled, etc.)
+8.3. Pulses (Dal)
+8.4. Millets & Other Grains
+
+9. Dry Fruits, Masala & Oil
+9.1. Almonds, Cashews, Raisins
+9.2. Cooking Oils
+9.3. Whole Spices
+9.4. Ground Spices
+9.5. Spice Mixes
+
+10. Sauces & Spreads
+10.1. Jams & Honey
+10.2. Peanut Butter & Nut Spreads
+10.3. Mayonnaise & Dips
+10.4. Cooking Sauces (Soy, Hot, etc.)
+
+11. Sweet Tooth
+11.1. Chocolates & Candies
+11.2. Indian Sweets (Mithai)
+11.3. Ice Creams
+11.4. Desserts (Pudding, Custard)
+
+12. Chicken, Meat & Fish
+12.1. Raw Chicken
+12.2. Fish & Seafood
+12.3. Mutton
+12.4. Ready-to-Cook Meat
+12.5. Cold Cuts
+
+13. Baby Care
+13.1. Diapers
+13.2. Baby Food
+13.3. Baby Skincare
+13.4. Wipes & Accessories
+
+14. Pet Care
+14.1. Dog Food
+14.2. Cat Food
+14.3. Pet Grooming
+14.4. Pet Accessories
+
+15. Beauty & Cosmetics
+15.1. Face Care
+15.2. Hair Care
+15.3. Makeup
+15.4. Bath & Body
+
+16. Cleaning Essentials
+16.1. Floor & Toilet Cleaners
+16.2. Dishwashing Liquids
+16.3. Detergents & Fabric Softeners
+16.4. Cleaning Tools
+
+17. Home & Office
+17.1. Air Fresheners
+17.2. Batteries & Bulbs
+17.3. Storage Containers
+17.4. Kitchen Tools
+
+18. Stationery
+18.1. Pens & Pencils
+18.2. Notebooks & Diaries
+18.3. Art Supplies
+18.4. Office Supplies
+
+19. Electronics
+19.1. Earphones & Chargers
+19.2. Power Banks
+19.3. LED Bulbs
+19.4. Small Appliances
+
+20. Books & Magazines
+20.1. Fiction
+20.2. Non-Fiction
+20.3. Kids’ Books
+20.4. Magazines

@@ -6,11 +6,11 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id: idStr } = await params;
-    const id = parseInt(idStr);
+    const { id } = await params;
+    const productId = parseInt(id);
     
     // Validate ID
-    if (isNaN(id) || id <= 0) {
+    if (isNaN(productId) || productId <= 0) {
       return NextResponse.json(
         { error: 'Invalid product ID' },
         { status: 400 }
@@ -18,7 +18,7 @@ export async function GET(
     }
 
     const product = await prisma.product.findUnique({
-      where: { id },
+      where: { id: productId },
       include: {
         categories: {
           select: {

@@ -5,14 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     slug: string;
     id: string;
-  };
+  }>;
 }
 
 export default async function CategoryPage({ params }: PageProps) {
-  const { id } = params;
+  const resolvedParams = await params;
+  const { id } = resolvedParams;
   const categoryId = Number(id);
 
   if (isNaN(categoryId)) {
@@ -26,7 +27,7 @@ export default async function CategoryPage({ params }: PageProps) {
     console.log("Products count:", products.length);
 
     return (
-      <div className="max-w-[1440px] mx-auto px-4 py-8">
+      <div className="max-w-[1600px] mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {/* Top Bar */}
           <div className="bg-white-600 text-black p-4">
@@ -35,7 +36,7 @@ export default async function CategoryPage({ params }: PageProps) {
           
           <div className="flex">
             {/* Subcategories Sidebar */}
-            <div className="sm:w-[80px] lg:w-68 flex-shrink-0 border-r border-gray-200">
+            <div className="sm:w-[80px] lg:w-48 flex-shrink-0 border-r border-gray-200">
               <div className="p-4">
                 {/* <h2 className="text-lg font-semibold mb-4">Subcategories</h2> */}
                 <div className="max-h-[600px] overflow-y-auto">
@@ -71,7 +72,7 @@ export default async function CategoryPage({ params }: PageProps) {
 
             {/* Products Grid */}
             <div className="flex-1 p-4">
-              <div className="grid grid-cols-2 lg:grid-cols-6 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-6 gap-y-4 gap-x-4">
                 {products.map((product) => (
                   <div key={product.id} className="w-full">
                     <ProductCard

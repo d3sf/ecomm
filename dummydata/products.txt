@@ -1,0 +1,833 @@
+1. Vegetables & Fruits
+1.1. Fresh Fruits
+Banana
+
+Apple (Kinnaur, Fuji)
+
+Papaya
+
+Orange
+
+Pomegranate
+
+1.2. Fresh Vegetables
+Potato
+
+Onion
+
+Tomato
+
+Carrot
+
+Spinach
+
+1.3. Exotic Fruits & Veggies
+Avocado
+
+Dragon Fruit
+
+Zucchini
+
+Broccoli
+
+Asparagus
+
+1.4. Organic Produce
+Organic Carrot
+
+Organic Spinach
+
+Organic Tomato
+
+Organic Cucumber
+
+Organic Beetroot
+
+1.5. Cut & Peeled Veggies
+Chopped Onions
+
+Diced Tomatoes
+
+Grated Carrot
+
+Peeled Garlic
+
+Mixed Veggies Pack
+
+2. Dairy & Breakfast
+2.1. Milk
+Amul Toned Milk
+
+Mother Dairy Full Cream Milk
+
+Nestlé A+ Slim Milk
+
+Gowardhan Cow Milk
+
+Heritage Buffalo Milk
+
+2.2. Curd & Yogurt
+Amul Masti Dahi
+
+Nestlé A+ Greek Yogurt
+
+Mother Dairy Mishti Doi
+
+Epigamia Natural Yogurt
+
+Danone Flavored Yogurt
+
+2.3. Butter & Cream
+Amul Butter
+
+Mother Dairy Butter
+
+President Unsalted Butter
+
+Amul Fresh Cream
+
+Nestlé Cream
+
+2.4. Cheese
+Amul Cheese Slices
+
+Britannia Cheese Cubes
+
+Go Cheese Spread
+
+Laughing Cow Cheese Wedges
+
+Mozzarella Cheese Block
+
+2.5. Eggs
+Regular White Eggs (Pack of 6)
+
+Brown Eggs (Pack of 12)
+
+Country Eggs
+
+Quail Eggs
+
+Omega-3 Enriched Eggs
+
+2.6. Breads & Buns
+Britannia Whole Wheat Bread
+
+Harvest Gold White Bread
+
+Modern Multigrain Bread
+
+Pav Buns
+
+Burger Buns
+
+2.7. Breakfast Cereals
+Kellogg's Corn Flakes
+
+Kellogg's Chocos
+
+Nestlé Nesquik
+
+Quaker Oats
+
+Bagrry's Muesli
+
+3. Munchies
+3.1. Chips & Wafers
+Lay's Classic Salted Chips
+
+Bingo Mad Angles
+
+Pringles Original
+
+Haldiram's Aloo Bhujia
+
+Uncle Chipps Spicy Treat
+
+3.2. Popcorn & Namkeen
+Act II Butter Popcorn
+
+Haldiram's Moong Dal
+
+Bikaji Bhujia
+
+Balaji Wafers
+
+Too Yumm! Multigrain Chips
+
+3.3. Nachos & Dips
+Doritos Nacho Cheese
+
+Cornitos Sizzling Jalapeno
+
+Wingreens Farms Salsa Dip
+
+Veeba Cheese Dip
+
+Funfoods Mexican Salsa
+
+3.4. Biscuits & Cookies
+Parle-G Biscuits
+
+Britannia Good Day Cookies
+
+Oreo Chocolate Cream
+
+Hide & Seek Fab
+
+Sunfeast Marie Light
+
+3.5. Dry Snacks
+Roasted Almonds
+
+Salted Cashews
+
+Trail Mix
+
+Banana Chips
+
+Masala Peanuts
+
+3.6. Protein & Energy Bars
+Yoga Bar Multigrain Energy Bar
+
+RiteBite Max Protein Bar
+
+Eat Anytime Nutrition Bar
+
+The Whole Truth Protein Bar
+
+MuscleBlaze Protein Bar
+
+4. Cold Drinks & Juices
+4.1. Soft Drinks
+Coca-Cola
+
+Pepsi
+
+Sprite
+
+Thums Up
+
+Fanta
+
+4.2. Fruit Juices
+Real Mixed Fruit Juice
+
+Tropicana Orange Juice
+
+B Natural Apple Juice
+
+Paper Boat Aamras
+
+Minute Maid Pulpy Orange
+
+4.3. Energy & Sports Drinks
+Red Bull Energy Drink
+
+Monster Energy Drink
+
+Gatorade Sports Drink
+
+Sting Energy Drink
+
+Tzinga Energy Drink
+
+4.4. Flavored Water
+Bailley Flavored Water
+
+Catch Natural Spring Water
+
+Himalayan Sparkling Water
+
+Aava Flavored Water
+
+Evocus Alkaline Water
+
+4.5. Mocktails & Mixers
+Jimmy's Cocktails
+
+Svami Tonic Water
+
+Bira 91 Lemonade
+
+Sepoy & Co. Ginger Ale
+
+Coca-Cola Schweppes
+
+5. Instant & Frozen Food
+5.1. Instant Noodles & Pasta
+Maggi 2-Minute Noodles
+
+Yippee Noodles
+
+Knorr Soupy Noodles
+
+Sunfeast Pasta Treat
+
+Top Ramen Curry Noodles
+
+5.2. Frozen Veg Snacks
+McCain Aloo Tikki
+
+Sumeru Veggie Fingers
+
+Godrej Yummiez Veg Nuggets
+
+ITC Master Chef Cheese Corn Balls
+
+Haldiram's Frozen Samosa
+
+5.3. Frozen Non-Veg Snacks
+Venky's Chicken Sausages
+
+Godrej Yummiez Chicken Nuggets
+
+Sumeru Chicken Seekh Kebab
+
+ITC Master Chef Chicken Popcorn
+
+Meatzza Chicken Salami
+
+5.4. Ready-to-Eat Meals
+MTR Ready-to-Eat Paneer Butter Masala
+
+Haldiram's Dal Makhani
+
+Gits Rajma Masala
+
+ITC Kitchens of India Biryani
+
+Tata Q Chicken Curry
+
+5.5. Soups & Meal Kits
+Knorr Hot & Sour Soup
+
+Ching's Secret Manchow Soup
+
+Maggi Soup Packets
+
+Chef's Basket Pasta Kit
+
+Veeba Meal Kits
+
+6. Tea, Coffee & Health Drinks
+6.1. Tea
+Tata Tea Gold
+
+Brooke Bond Red Label
+
+Tetley Green Tea
+
+Lipton Yellow Label
+
+Organic India Tulsi Tea
+
+6.2. Coffee
+Nescafé Classic
+
+Bru Instant Coffee
+
+Davidoff Rich Aroma
+
+Tata Coffee Grand
+
+Continental Xtra Instant Coffee
+
+6.3. Health Drinks
+Horlicks Classic Malt
+
+Bournvita
+
+Boost
+
+Complan
+
+Pediasure
+
+7. Bakery & Biscuits
+7.1. Breads
+Britannia Whole Wheat Bread
+
+Harvest Gold White Bread
+
+Modern Multigrain Bread
+
+English Oven Brown Bread
+
+Bonn Sandwich Bread
+
+7.2. Cakes & Pastries
+Plum Cake
+
+Chocolate Truffle Pastry
+
+Pineapple Pastry
+
+Black Forest Cake
+
+Red Velvet Cupcake
+
+7.3. Cookies & Biscuits
+Parle-G Biscuits
+
+Britannia Good Day Cookies
+
+Oreo Chocolate Cream
+
+Hide & Seek Fab
+
+Sunfeast Marie Light
+
+8. Atta, Rice & Dal
+8.1. Atta & Other Flours
+Aashirvaad Whole Wheat Atta
+
+Pillsbury Chakki Fresh Atta
+
+Fortune Chakki Fresh Atta
+
+Annapurna Atta
+
+Patanjali Atta
+
+8.2. Rice & Rice Products
+India Gate Basmati Rice
+
+Daawat Biryani Basmati Rice
+
+Kohinoor Super Silver Basmati Rice
+
+Fortune Everyday Basmati Rice
+
+Sona Masoori Rice
+
+8.3. Pulses & Lentils
+Tata Sampann Toor Dal
+
+Fortune Moong Dal
+
+Urad Dal
+
+Chana Dal
+
+Masoor Dal
+
+9. Masala, Oil & More
+9.1. Cooking Oils
+Fortune Sunflower Oil
+
+Saffola Gold Oil
+
+Dhara Mustard Oil
+
+Patanjali Groundnut Oil
+
+Figaro Olive Oil
+
+9.2. Spices & Masalas
+MDH Garam Masala
+
+Everest Red Chilli Powder
+
+Catch Turmeric Powder
+
+Badshah Kitchen King Masala
+
+Tata Sampann Coriander Powder
+
+9.3. Salt, Sugar & Jaggery
+Tata Salt
+
+Aashirvaad Salt
+
+Madhur Sugar
+
+Organic Jaggery Powder
+
+Patanjali Brown Sugar
+
+10. Sauces & Spreads
+10.1. Sauces
+Maggi Tomato Ketchup
+
+Kissan Chilli Sauce
+
+Heinz Barbecue Sauce
+
+Tabasco Hot Sauce
+
+Del Monte Pasta Sauce
+
+10.2. Spreads
+Nutella Hazelnut Spread
+
+Amul Butter
+
+Kissan Mixed Fruit Jam
+
+Peanut Butter
+
+Hershey's Chocolate Syrup
+
+10.3. Dips & Dressings
+Veeba Mayonnaise
+
+Funfoods Sandwich Spread
+
+Wingreens Farms Hummus
+
+Thousand Island Dressing
+
+Caesar Salad Dressing
+
+11. Chicken, Meat & Fish
+11.1. Fresh Chicken
+Chicken Curry Cut
+
+Chicken Breast Boneless
+
+Chicken Drumsticks
+
+Chicken Mince
+
+Whole Chicken
+
+11.2. Fresh Mutton
+Mutton Curry Cut
+
+Mutton Keema
+
+Mutton Chops
+
+Mutton Liver
+
+Mutton Boneless
+
+11.3. Fresh Fish & Seafood
+Rohu Fish Slices
+
+Catla Fish
+
+Prawns
+
+Pomfret Fish
+
+Surmai Fish
+
+11.4. Frozen Meats
+Chicken Nuggets
+
+Fish Fingers
+
+Chicken Sausages
+
+Mutton Seekh Kebabs
+
+Chicken Popcorn
+
+12. Baby Care
+12.1. Diapers & Wipes
+Pampers Baby Dry Diapers
+
+Huggies Wonder Pants
+
+MamyPoko Pants
+
+Johnson's Baby Wipes
+
+Himalaya Baby Wipes
+
+12.2. Baby Food
+Cerelac Wheat Apple
+
+Nestlé Lactogen
+
+Farex Stage 1
+
+Gerber Organic Puree
+
+Heinz Apple Biscotti
+
+12.3. Baby Bath & Skin
+Johnson's Baby Soap
+
+Himalaya Baby Shampoo
+
+Sebamed Baby Lotion
+
+Chicco Baby Cream
+
+Dove Baby Wash
+
+13. Pet Care
+13.1. Dog Food
+Pedigree Adult Dog Food
+
+Royal Canin Puppy Food
+
+Drools Chicken & Egg
+
+Purina Supercoat
+
+Meat Up Adult Dog Food
+
+13.2. Cat Food
+Whiskas Tuna Cat Food
+
+Me-O Mackerel Cat Food
+
+Sheba Premium Wet Food
+
+Purepet Ocean Fish
+
+Royal Canin Kitten Food
+
+13.3. Pet Grooming
+Himalaya Dog Shampoo
+
+Pet Head Dry Clean Spray
+
+Wahl Flea Comb
+
+Trixie Nail Clipper
+
+Petkin Pet Wipes
+
+14. Home & Office
+14.1. Cleaning Supplies
+Lizol Floor Cleaner
+
+Harpic Toilet Cleaner
+
+Colin Glass Cleaner
+
+Scotch-Brite Scrub Pad
+
+Dettol Disinfectant Spray
+
+14.2. Kitchen Essentials
+Aluminium Foil
+
+Cling Film
+
+Garbage Bags
+
+Dishwashing Liquid
+
+Kitchen Towels
+
+14.3. Stationery
+A4 Printing Paper
+
+Ballpoint Pens
+
+Notebooks
+
+Sticky Notes
+
+Highlighters
+
+15. Beauty & Cosmetics
+15.1. Skin Care
+Nivea Soft Cream
+
+Pond's Moisturizer
+
+Himalaya Face Wash
+
+Garnier Micellar Water
+
+Lakmé Sunscreen
+
+15.2. Hair Care
+Dove Shampoo
+
+Pantene Conditioner
+
+Parachute Hair Oil
+
+Head & Shoulders Anti-Dandruff
+
+L'Oréal Hair Serum
+
+15.3. Makeup
+Maybelline Mascara
+
+Lakmé Lipstick
+
+Colorbar Foundation
+
+Revlon Nail Polish
+
+Faces Canada Compact
+
+16. Home & Office
+16.1. Cleaning Supplies
+Lizol Floor Cleaner
+
+Harpic Toilet Cleaner
+
+Colin Glass Cleaner
+
+Scotch-Brite Scrub Pad
+
+Dettol Disinfectant Spray
+
+16.2. Kitchen Essentials
+Aluminium Foil
+
+Cling Film
+
+Garbage Bags
+
+Dishwashing Liquid
+
+Kitchen Towels
+
+16.3. Stationery
+A4 Printing Paper
+
+Ballpoint Pens
+
+Notebooks
+
+Sticky Notes
+
+Highlighters
+
+17. Beauty & Cosmetics
+17.1. Skin Care
+Nivea Soft Cream
+
+Pond's Moisturizer
+
+Himalaya Face Wash
+
+Garnier Micellar Water
+
+Lakmé Sunscreen
+
+17.2. Hair Care
+Dove Shampoo
+
+Pantene Conditioner
+
+Parachute Hair Oil
+
+Head & Shoulders Anti-Dandruff
+
+L'Oréal Hair Serum
+
+17.3. Makeup
+Maybelline Mascara
+
+Lakmé Lipstick
+
+Colorbar Foundation
+
+Revlon Nail Polish
+
+Faces Canada Compact
+
+18. Magazines
+18.1. Lifestyle Magazines
+Femina
+
+Vogue India
+
+GQ India
+
+Cosmopolitan
+
+Elle India
+
+18.2. News & Politics
+India Today
+
+Outlook
+
+The Week
+
+Frontline
+
+Time Magazine
+
+18.3. Business & Finance
+Forbes India
+
+Business Today
+
+Fortune India
+
+Entrepreneur India
+
+The Economist
+
+19. Sweet Tooth
+19.1. Chocolates
+Dairy Milk Silk
+
+Ferrero Rocher
+
+Lindt Excellence
+
+Toblerone
+
+Bournville
+
+19.2. Candies & Gums
+Alpenliebe
+
+Mentos
+
+Pulse Candy
+
+Center Fresh
+
+Jelly Beans
+
+19.3. Indian Sweets
+Haldiram's Rasgulla
+
+Bikano Gulab Jamun
+
+MTR Mysore Pak
+
+Bikanervala Soan Papdi
+
+Gits Kaju Katli
+
+20. Electronics & Accessories
+20.1. Mobile Accessories
+USB Charging Cables
+
+Power Banks
+
+Earphones
+
+Phone Cases
+
+Screen Protectors
+
+20.2. Computer Accessories
+Wireless Mouse
+
+Keyboards
+
+USB Flash Drives
+
+Laptop Cooling Pads
+
+External Hard Drives
+
+20.3. Home Appliances
+Electric Kettles
+
+Toasters
+
+Hand Blenders
+
+Irons
+
+Extension Boards

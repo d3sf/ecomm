@@ -33,6 +33,9 @@ model Category {
   products         ProductCategory[]
   defaultProducts  Product[]         @relation("DefaultCategory")
   homepageSections HomepageSection[]
+  description      String?
+  imageUrl         String?
+  grids            CategoryGrid[]
 }
 
 model Product {
@@ -180,5 +183,18 @@ model Staff {
   name         String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model CategoryGrid {
+  id         String   @id @default(cuid())
+  categoryId Int
+  imageUrl   String
+  order      Int      @default(0)
+  isVisible  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt  
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
 }
 

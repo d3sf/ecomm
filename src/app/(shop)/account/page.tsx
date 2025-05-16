@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { Plus, Package, MapPin, User } from "lucide-react";
+import { Plus, Package, MapPin, User, Download, Edit2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import axios from "axios";
+import AddressForm from "@/components/address/AddressForm";
 
 interface Address {
   id: number;
@@ -59,7 +60,8 @@ export default function AccountPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
-  const [newAddress, setNewAddress] = useState<Omit<Address, 'id'>>({
+  const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
+  const newAddress: Omit<Address, 'id'> = {
     fullName: "",
     phoneNumber: "",
     addressLine1: "",
@@ -70,7 +72,7 @@ export default function AccountPage() {
     isDefault: false,
     addressLabel: "HOME",
     customLabel: "",
-  });
+  };
 
   const fetchAddresses = useCallback(async () => {
     try {
@@ -161,31 +163,49 @@ export default function AccountPage() {
     }
   };
 
-  const handleAddAddress = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddAddress = async (addressData: Omit<Address, 'id'>) => {
     try {
-      const { data: savedAddress } = await axios.post("/api/addresses", newAddress);
+      const { data: savedAddress } = await axios.post("/api/addresses", addressData);
       setAddresses([...addresses, savedAddress]);
       setIsAddingAddress(false);
       toast.success("Address saved successfully");
-
-      // Reset form
-      setNewAddress({
-        fullName: "",
-        phoneNumber: "",
-        addressLine1: "",
-        addressLine2: "",
-        city: "",
-        state: "",
-        postalCode: "",
-        isDefault: false,
-        addressLabel: "HOME",
-        customLabel: "",
-      });
     } catch (error) {
       console.error("Error saving address:", error);
       toast.error("Failed to save address");
+      throw error;
     }
+  };
+
+  const handleUpdateAddress = async (addressData: Address) => {
+    try {
+      const response = await fetch(`/api/addresses/update?id=${addressData.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(addressData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update address");
+      }
+
+      // Refresh the addresses list
+      fetchAddresses();
+      setEditingAddressId(null);
+      toast.success("Address updated successfully");
+    } catch (error) {
+      console.error("Error updating address:", error);
+      toast.error("Failed to update address");
+      throw error;
+    }
+  };
+
+  const handleEditAddress = (address: Address) => {
+    // Set the address being edited
+    setEditingAddressId(address.id);
+    setIsAddingAddress(false);
   };
 
   const handleDeleteAddress = async (id: number) => {
@@ -225,6 +245,39 @@ export default function AccountPage() {
     } catch (error) {
       console.error("Error setting default address:", error);
       toast.error("Failed to set default address");
+    }
+  };
+
+  const handleDownloadInvoice = async (orderId: number) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}/invoice`);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to download invoice');
+      }
+
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link element
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice-${orderId}.pdf`;
+      
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the URL
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to download invoice');
     }
   };
 
@@ -373,7 +426,16 @@ export default function AccountPage() {
                           </div>
                           <div className="flex justify-between items-center mt-2">
                             <p className="text-sm text-gray-500">Total Amount:</p>
-                            <p className="font-medium">₹{order.totalAmount}</p>
+                            <div className="flex items-center gap-4">
+                              <p className="font-medium">₹{order.totalAmount}</p>
+                              <button
+                                onClick={() => handleDownloadInvoice(order.id)}
+                                className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              >
+                                <Download className="h-4 w-4 mr-1" />
+                                Invoice
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -388,7 +450,10 @@ export default function AccountPage() {
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Your Addresses</h3>
                   <button
-                    onClick={() => setIsAddingAddress(true)}
+                    onClick={() => {
+                      setIsAddingAddress(true);
+                      setEditingAddressId(null);
+                    }}
                     className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
                   >
                     <Plus size={16} />
@@ -396,167 +461,29 @@ export default function AccountPage() {
                   </button>
                 </div>
 
-                {isAddingAddress && (
+                {isAddingAddress && !editingAddressId && (
                   <div className="border border-gray-200 rounded-lg p-6">
                     <h4 className="text-lg font-medium mb-4">Add New Address</h4>
-                    <form onSubmit={handleAddAddress} className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        <label className="w-40 font-medium">Full Name</label>
-                        <input
-                          type="text"
-                          className="flex-1 p-2 border border-gray-300 rounded"
-                          value={newAddress.fullName}
-                          onChange={(e) =>
-                            setNewAddress({ ...newAddress, fullName: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
+                    <AddressForm
+                      onCancel={() => setIsAddingAddress(false)}
+                      onSubmit={handleAddAddress}
+                      initialData={newAddress}
+                    />
+                  </div>
+                )}
 
-                      <div className="flex items-center gap-4">
-                        <label className="w-40 font-medium">Phone Number</label>
-                        <input
-                          type="tel"
-                          className="flex-1 p-2 border border-gray-300 rounded"
-                          value={newAddress.phoneNumber}
-                          onChange={(e) =>
-                            setNewAddress({ ...newAddress, phoneNumber: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <label className="w-40 font-medium">Address Line 1</label>
-                        <input
-                          type="text"
-                          className="flex-1 p-2 border border-gray-300 rounded"
-                          value={newAddress.addressLine1}
-                          onChange={(e) =>
-                            setNewAddress({ ...newAddress, addressLine1: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <label className="w-40 font-medium">Address Line 2</label>
-                        <input
-                          type="text"
-                          className="flex-1 p-2 border border-gray-300 rounded"
-                          value={newAddress.addressLine2}
-                          onChange={(e) =>
-                            setNewAddress({ ...newAddress, addressLine2: e.target.value })
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <label className="w-40 font-medium">City</label>
-                        <input
-                          type="text"
-                          className="flex-1 p-2 border border-gray-300 rounded"
-                          value={newAddress.city}
-                          onChange={(e) =>
-                            setNewAddress({ ...newAddress, city: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <label className="w-40 font-medium">State</label>
-                        <input
-                          type="text"
-                          className="flex-1 p-2 border border-gray-300 rounded"
-                          value={newAddress.state}
-                          onChange={(e) =>
-                            setNewAddress({ ...newAddress, state: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <label className="w-40 font-medium">Postal Code</label>
-                        <input
-                          type="text"
-                          className="flex-1 p-2 border border-gray-300 rounded"
-                          value={newAddress.postalCode}
-                          onChange={(e) =>
-                            setNewAddress({ ...newAddress, postalCode: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <label className="w-40 font-medium">Address Label</label>
-                        <select
-                          className="flex-1 p-2 border border-gray-300 rounded"
-                          value={newAddress.addressLabel}
-                          onChange={(e) =>
-                            setNewAddress({
-                              ...newAddress,
-                              addressLabel: e.target.value as "HOME" | "WORK" | "OTHER",
-                            })
-                          }
-                        >
-                          <option value="HOME">Home</option>
-                          <option value="WORK">Work</option>
-                          <option value="OTHER">Other</option>
-                        </select>
-                      </div>
-
-                      {newAddress.addressLabel === "OTHER" && (
-                        <div className="flex items-center gap-4">
-                          <label className="w-40 font-medium">Custom Label</label>
-                          <input
-                            type="text"
-                            className="flex-1 p-2 border border-gray-300 rounded"
-                            value={newAddress.customLabel}
-                            onChange={(e) =>
-                              setNewAddress({
-                                ...newAddress,
-                                customLabel: e.target.value,
-                              })
-                            }
-                            required
-                          />
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-4">
-                        <label className="w-40 font-medium">Default Address</label>
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          checked={newAddress.isDefault}
-                          onChange={(e) =>
-                            setNewAddress({
-                              ...newAddress,
-                              isDefault: e.target.checked,
-                            })
-                          }
-                        />
-                      </div>
-
-                      <div className="flex justify-end gap-4 mt-6">
-                        <button
-                          type="button"
-                          onClick={() => setIsAddingAddress(false)}
-                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
-                        >
-                          Save Address
-                        </button>
-                      </div>
-                    </form>
+                {editingAddressId && (
+                  <div className="border border-gray-200 rounded-lg p-6">
+                    <h4 className="text-lg font-medium mb-4">Edit Address</h4>
+                    {addresses.filter(addr => addr.id === editingAddressId).map(address => (
+                      <AddressForm
+                        key={address.id}
+                        onCancel={() => setEditingAddressId(null)}
+                        onSubmit={(data) => handleUpdateAddress({...data, id: address.id})}
+                        initialData={address}
+                        isEditing={true}
+                      />
+                    ))}
                   </div>
                 )}
 
@@ -607,6 +534,13 @@ export default function AccountPage() {
                             Default Address
                           </span>
                         )}
+                        <button
+                          onClick={() => handleEditAddress(address)}
+                          className="text-sm text-indigo-600 hover:text-indigo-700"
+                        >
+                          <Edit2 size={14} className="inline mr-1" />
+                          Edit
+                        </button>
                         <button
                           onClick={() => handleDeleteAddress(address.id)}
                           className="text-sm text-red-600 hover:text-red-700"

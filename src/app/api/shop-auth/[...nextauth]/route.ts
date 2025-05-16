@@ -140,6 +140,9 @@ export const shopAuthOptions: NextAuthOptions = {
               session.user.name = user.name || undefined;
               session.user.email = user.email || undefined;
               session.user.phone = user.phone || undefined;
+              // Add type and role from token
+              session.user.type = token.type as "user";
+              session.user.role = token.role as "customer";
             }
           }
         } catch (error) {

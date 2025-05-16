@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { toast } from "react-hot-toast";
 import CustomerList from "./components/CustomerList";
 import Button from "@/components/ui/Button";
+import { TableSkeleton } from "@/components/admin/skeletons";
 
 interface Customer {
   id: number;
@@ -124,9 +125,7 @@ export default function CustomersPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
+        <TableSkeleton rows={6} columns={5} />
       ) : (
         <CustomerList
           customers={customers}

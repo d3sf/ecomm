@@ -1,0 +1,81 @@
+Name,Slug,Parent Name,Sort Order,Published
+"Vegetables & Fruits","vegetables-fruits","",0,true
+"Fresh Vegetables","fresh-vegetables","Vegetables & Fruits",0,true
+"Fresh Fruits","fresh-fruits","Vegetables & Fruits",1,true
+"Exotic Fruits & Vegetables","exotic-fruits-vegetables","Vegetables & Fruits",2,true
+"Bakery, Cakes & Dairy","bakery-cakes-and-dairy","",1,true
+"Bread & Buns","bread-buns","Bakery, Cakes & Dairy",0,true
+"Cakes & Pastries","cakes-pastries","Bakery, Cakes & Dairy",1,true
+"Dairy Products","dairy-products","Bakery, Cakes & Dairy",2,true
+"Beverages","beverages","",2,true
+"Energy Drinks","energy-drinks","Beverages",0,true
+"Soft Drinks","soft-drinks","Beverages",1,true
+"Water & Soda","water-soda","Beverages",2,true
+"Breakfast & Instant Food","breakfast-and-instant-food","",3,true
+"Cereals","cereals","Breakfast & Instant Food",0,true
+"Oats & Porridge","oats-porridge","Breakfast & Instant Food",1,true
+"Ready-to-Eat","ready-to-eat","Breakfast & Instant Food",2,true
+"Cleaning Essentials","cleaning-essentials","",4,true
+"Floor Cleaners","floor-cleaners","Cleaning Essentials",0,true
+"Dishwashers","dishwashers","Cleaning Essentials",1,true
+"Bathroom Cleaners","bathroom-cleaners","Cleaning Essentials",2,true
+"Cold Drinks & Juices","cold-drinks-and-juices","",5,true
+"Fruit Juices","fruit-juices","Cold Drinks & Juices",0,true
+"Soft Drinks","soft-drinks-cold","Cold Drinks & Juices",1,true
+"Packaged Water","packaged-water","Cold Drinks & Juices",2,true
+"Dry Fruits, Masala & Oil","dry-fruits-masala-and-oil","",6,true
+"Nuts & Dry Fruits","nuts-dry-fruits","Dry Fruits, Masala & Oil",0,true
+"Spices & Masalas","spices-masalas","Dry Fruits, Masala & Oil",1,true
+"Cooking Oils","cooking-oils","Dry Fruits, Masala & Oil",2,true
+"Eggs, Meat & Fish","eggs-meat-and-fish","",7,true
+"Eggs","eggs","Eggs, Meat & Fish",0,true
+"Chicken & Poultry","chicken-poultry","Eggs, Meat & Fish",1,true
+"Fish & Seafood","fish-seafood","Eggs, Meat & Fish",2,true
+"Foodgrains, Oil & Masala","foodgrains-oil-and-masala","",8,true
+"Rice & Rice Products","rice-products","Foodgrains, Oil & Masala",0,true
+"Flours & Grains","flours-grains","Foodgrains, Oil & Masala",1,true
+"Pulses","pulses","Foodgrains, Oil & Masala",2,true
+"Gourmet & World Food","gourmet-and-world-food","",9,true
+"Chocolates","chocolates","Gourmet & World Food",0,true
+"International Cuisine","international-cuisine","Gourmet & World Food",1,true
+"Premium Snacks","premium-snacks","Gourmet & World Food",2,true
+"Household Needs","household-needs","",10,true
+"Kitchen Tools","kitchen-tools","Household Needs",0,true
+"Home Decor","home-decor","Household Needs",1,true
+"Laundry Essentials","laundry-essentials","Household Needs",2,true
+"Munchies","munchies","",11,true
+"Chips & Crisps","chips-crisps","Munchies",0,true
+"Popcorn","popcorn","Munchies",1,true
+"Cookies & Biscuits","cookies-biscuits","Munchies",2,true
+"Namkeen & Snacks","namkeen-and-snacks","",12,true
+"Traditional Namkeen","traditional-namkeen","Namkeen & Snacks",0,true
+"Bhujia & Mixtures","bhujia-mixtures","Namkeen & Snacks",1,true
+"Healthy Snacks","healthy-snacks","Namkeen & Snacks",2,true
+"Noodles, Sauces & Instant Food","noodles-sauces-and-instant-food","",13,true
+"Instant Noodles","instant-noodles","Noodles, Sauces & Instant Food",0,true
+"Pasta & Vermicelli","pasta-vermicelli","Noodles, Sauces & Instant Food",1,true
+"Cooking Sauces","cooking-sauces","Noodles, Sauces & Instant Food",2,true
+"Personal Care","personal-care","",14,true
+"Bath & Body","bath-body","Personal Care",0,true
+"Hair Care","hair-care","Personal Care",1,true
+"Skin Care","skin-care","Personal Care",2,true
+"Pet Care","pet-care","",15,true
+"Dog Food","dog-food","Pet Care",0,true
+"Cat Food","cat-food","Pet Care",1,true
+"Pet Accessories","pet-accessories","Pet Care",2,true
+"Pharma & Wellness","pharma-and-wellness","",16,true
+"Vitamins & Supplements","vitamins-supplements","Pharma & Wellness",0,true
+"Pain Relief","pain-relief","Pharma & Wellness",1,true
+"First Aid","first-aid","Pharma & Wellness",2,true
+"Staples","staples","",17,true
+"Atta & Flours","atta-flours","Staples",0,true
+"Rice & Other Grains","rice-other-grains","Staples",1,true
+"Salt & Sugar","salt-sugar","Staples",2,true
+"Sweet Tooth","sweet-tooth","",18,true
+"Chocolates & Candies","chocolates-candies","Sweet Tooth",0,true
+"Ice Cream","ice-cream","Sweet Tooth",1,true
+"Dessert Mixes","dessert-mixes","Sweet Tooth",2,true
+"Tea, Coffee & Health Drinks","tea-coffee-and-health-drinks","",19,true
+"Tea","tea","Tea, Coffee & Health Drinks",0,true
+"Coffee","coffee","Tea, Coffee & Health Drinks",1,true
+"Health Drinks","health-drinks","Tea, Coffee & Health Drinks",2,true 

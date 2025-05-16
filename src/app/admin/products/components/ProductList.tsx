@@ -54,7 +54,6 @@ const ProductList: React.FC<ProductListProps> = ({
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
         await onDelete(id);
-        toast.success("Product deleted successfully");
       } catch (error: unknown) {
         console.error("Error deleting product:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to delete product";

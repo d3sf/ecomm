@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ProductCarousel from './ProductCarousel';
+import { HomepageSectionsSkeleton } from '@/components/ui/SkeletonLoaders';
 
 interface Product {
   id: number;
@@ -25,7 +26,7 @@ interface HomepageSection {
   categoryId: number;
   sortOrder: number;
   isActive: boolean;
-  category: Category;
+  category?: Category;
 }
 
 export default function HomepageSectionsDisplay() {
@@ -49,7 +50,7 @@ export default function HomepageSectionsDisplay() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <HomepageSectionsSkeleton />;
   }
 
   return (
@@ -58,12 +59,14 @@ export default function HomepageSectionsDisplay() {
         .sort((a, b) => a.sortOrder - b.sortOrder)
         .map((section) => (
           <div key={section.id} className="mb-12">
-            <ProductCarousel
-              categoryName={section.category.name}
-              products={section.category.products}
-              categorySlug={section.category.slug}
-              categoryId={section.category.id}
-            />
+            {section.category && (
+              <ProductCarousel
+                categoryName={section.category.name}
+                products={section.category.products}
+                categorySlug={section.category.slug}
+                categoryId={section.category.id}
+              />
+            )}
           </div>
         ))}
     </div>

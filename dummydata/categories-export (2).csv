@@ -1,0 +1,21 @@
+Name,Slug,Parent Name,Sort Order,Published
+"Vegetables & Fruits","vegetables-fruits","",0,true
+"Bakery, Cakes & Dairy","bakery-cakes-and-dairy","",1,true
+"Beverages","beverages","",2,true
+"Breakfast & Instant Food","breakfast-and-instant-food","",3,true
+"Cleaning Essentials","cleaning-essentials","",4,true
+"Cold Drinks & Juices","cold-drinks-and-juices","",5,true
+"Dry Fruits, Masala & Oil","dry-fruits-masala-and-oil","",6,true
+"Eggs, Meat & Fish","eggs-meat-and-fish","",7,true
+"Foodgrains, Oil & Masala","foodgrains-oil-and-masala","",8,true
+"Gourmet & World Food","gourmet-and-world-food","",9,true
+"Household Needs","household-needs","",10,true
+"Munchies","munchies","",11,true
+"Namkeen & Snacks","namkeen-and-snacks","",12,true
+"Noodles, Sauces & Instant Food","noodles-sauces-and-instant-food","",13,true
+"Personal Care","personal-care","",14,true
+"Pet Care","pet-care","",15,true
+"Pharma & Wellness","pharma-and-wellness","",16,true
+"Staples","staples","",17,true
+"Sweet Tooth","sweet-tooth","",18,true
+"Tea, Coffee & Health Drinks","tea-coffee-and-health-drinks","",19,true

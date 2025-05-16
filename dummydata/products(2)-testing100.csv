@@ -1,0 +1,99 @@
+Name,Description,Price,Quantity,Stock,Published,Categories,Default Category
+Fresh Tomatoes,Locally sourced fresh tomatoes,30,1 kg,100,TRUE,Vegetables & Fruits; Fresh Vegetables,Vegetables & Fruits
+Organic Spinach,Farm fresh organic spinach,45,500 g,80,TRUE,Vegetables & Fruits; Fresh Vegetables,Vegetables & Fruits
+Green Bell Peppers,Crisp green capsicum,25,500 g,90,TRUE,Vegetables & Fruits; Fresh Vegetables,Vegetables & Fruits
+Red Onions,Premium quality red onions,20,1 kg,120,TRUE,Vegetables & Fruits; Fresh Vegetables,Vegetables & Fruits
+Sweet Potatoes,Nutritious sweet potatoes,35,1 kg,75,TRUE,Vegetables & Fruits; Fresh Vegetables,Vegetables & Fruits
+Red Apples,Premium red apples,180,1 kg,85,TRUE,Vegetables & Fruits; Fresh Fruits,Vegetables & Fruits
+Alphonso Mangoes,Premium Alphonso mangoes,400,1 kg,50,TRUE,Vegetables & Fruits; Fresh Fruits,Vegetables & Fruits
+Sweet Oranges,Juicy naval oranges,120,1 kg,90,TRUE,Vegetables & Fruits; Fresh Fruits,Vegetables & Fruits
+Green Grapes,Seedless green grapes,90,500 g,70,TRUE,Vegetables & Fruits; Fresh Fruits,Vegetables & Fruits
+Kiwi,Imported fresh kiwi,200,500 g,40,TRUE,Vegetables & Fruits; Exotic Fruits & Vegetables,Vegetables & Fruits
+Dragon Fruit,Fresh dragon fruit,250,piece,30,TRUE,Vegetables & Fruits; Exotic Fruits & Vegetables,Vegetables & Fruits
+Avocados,Imported avocados,150,piece,45,TRUE,Vegetables & Fruits; Exotic Fruits & Vegetables,Vegetables & Fruits
+Broccoli,Fresh broccoli,120,500 g,60,TRUE,Vegetables & Fruits; Fresh Vegetables,Vegetables & Fruits
+Baby Corn,Fresh baby corn,80,200 g,55,TRUE,Vegetables & Fruits; Fresh Vegetables,Vegetables & Fruits
+Mixed Lettuce,Assorted lettuce varieties,60,200 g,70,TRUE,Vegetables & Fruits; Fresh Vegetables,Vegetables & Fruits
+,,,,,,,
+Whole Wheat Bread,Fresh baked whole wheat bread,45,400 g,100,TRUE,"Bakery, Cakes & Dairy; Bread & Buns","Bakery, Cakes & Dairy"
+Multigrain Bread,Healthy multigrain bread,55,400 g,80,TRUE,"Bakery, Cakes & Dairy; Bread & Buns","Bakery, Cakes & Dairy"
+Burger Buns,Soft burger buns pack of 4,40,200 g,90,TRUE,"Bakery, Cakes & Dairy; Bread & Buns","Bakery, Cakes & Dairy"
+Hot Dog Rolls,Fresh hot dog rolls pack of 6,45,300 g,75,TRUE,"Bakery, Cakes & Dairy; Bread & Buns","Bakery, Cakes & Dairy"
+Garlic Bread,Freshly baked garlic bread,60,250 g,60,TRUE,"Bakery, Cakes & Dairy; Bread & Buns","Bakery, Cakes & Dairy"
+Chocolate Cake,Rich chocolate cake,350,500 g,40,TRUE,"Bakery, Cakes & Dairy; Cakes & Pastries","Bakery, Cakes & Dairy"
+Black Forest Pastry,Classic black forest pastry,90,piece,50,TRUE,"Bakery, Cakes & Dairy; Cakes & Pastries","Bakery, Cakes & Dairy"
+Butter Croissant,Flaky butter croissant,50,piece,70,TRUE,"Bakery, Cakes & Dairy; Cakes & Pastries","Bakery, Cakes & Dairy"
+Fruit Danish,Assorted fruit danish,55,piece,45,TRUE,"Bakery, Cakes & Dairy; Cakes & Pastries","Bakery, Cakes & Dairy"
+Paneer,Fresh cottage cheese,80,200 g,100,TRUE,"Bakery, Cakes & Dairy; Dairy Products","Bakery, Cakes & Dairy"
+Greek Yogurt,Thick Greek-style yogurt,120,400 g,80,TRUE,"Bakery, Cakes & Dairy; Dairy Products","Bakery, Cakes & Dairy"
+Cheese Slices,Processed cheese slices,110,200 g,90,TRUE,"Bakery, Cakes & Dairy; Dairy Products","Bakery, Cakes & Dairy"
+Butter,Fresh dairy butter,50,100 g,120,TRUE,"Bakery, Cakes & Dairy; Dairy Products","Bakery, Cakes & Dairy"
+Fresh Cream,Pure dairy cream,45,200 ml,85,TRUE,"Bakery, Cakes & Dairy; Dairy Products","Bakery, Cakes & Dairy"
+Mozzarella Cheese,Fresh mozzarella cheese,200,200 g,70,TRUE,"Bakery, Cakes & Dairy; Dairy Products","Bakery, Cakes & Dairy"
+,,,,,,,
+Red Bull,Energy drink Red Bull,125,250 ml,100,TRUE,Beverages; Energy Drinks,Beverages
+Monster Energy,Monster energy drink,150,350 ml,80,TRUE,Beverages; Energy Drinks,Beverages
+Gatorade,Sports drink various flavors,70,500 ml,120,TRUE,Beverages; Energy Drinks,Beverages
+Glucon D,Energy glucose powder,90,500 g,150,TRUE,Beverages; Energy Drinks,Beverages
+Power Horse,Power Horse energy drink,130,250 ml,70,TRUE,Beverages; Energy Drinks,Beverages
+Coca Cola,Classic Coke,40,750 ml,200,TRUE,Beverages; Soft Drinks,Beverages
+Pepsi,Classic cola drink,40,750 ml,200,TRUE,Cold Drinks & Juices; Soft Drinks,Cold Drinks & Juices
+Sprite,Lemon lime beverage,40,750 ml,170,TRUE,Cold Drinks & Juices; Soft Drinks,Cold Drinks & Juices
+Fanta,Orange flavored drink,40,750 ml,150,TRUE,Beverages; Soft Drinks,Beverages
+Mountain Dew,Energy soft drink,40,750 ml,160,TRUE,Cold Drinks & Juices; Soft Drinks,Cold Drinks & Juices
+Mirinda,Orange flavored drink,40,750 ml,150,TRUE,Cold Drinks & Juices; Soft Drinks,Cold Drinks & Juices
+Bisleri,Mineral water,20,1 L,300,TRUE,Cold Drinks & Juices; Packaged Water,Cold Drinks & Juices
+Kinley,Packaged drinking water,20,1 L,280,TRUE,Cold Drinks & Juices; Packaged Water,Cold Drinks & Juices
+Aquafina,Purified water,20,1 L,270,TRUE,Cold Drinks & Juices; Packaged Water,Cold Drinks & Juices
+Bailey,Premium mineral water,30,1 L,150,TRUE,Cold Drinks & Juices; Packaged Water,Cold Drinks & Juices
+Himalayan,Natural mineral water,50,1 L,120,TRUE,Cold Drinks & Juices; Packaged Water,Cold Drinks & Juices
+Club Soda,Premium club soda,35,750 ml,180,TRUE,Beverages; Water & Soda,Beverages
+Schweppes,Tonic water,45,300 ml,100,TRUE,Beverages; Water & Soda,Beverages
+,,,,,,,
+Kellogg's Corn Flakes,Original corn flakes,180,500 g,100,TRUE,Breakfast & Instant Food; Cereals,Breakfast & Instant Food
+Chocos,Chocolate flavored cereal,220,400 g,85,TRUE,Breakfast & Instant Food; Cereals,Breakfast & Instant Food
+Muesli,Mixed fruit muesli,250,500 g,75,TRUE,Breakfast & Instant Food; Cereals,Breakfast & Instant Food
+Fitness Flakes,Whole grain fitness flakes,200,450 g,90,TRUE,Breakfast & Instant Food; Cereals,Breakfast & Instant Food
+Fruit Loops,Colorful fruit loops cereal,240,300 g,60,TRUE,Breakfast & Instant Food; Cereals,Breakfast & Instant Food
+Quaker Oats,Traditional oats,130,1 kg,150,TRUE,Breakfast & Instant Food; Oats & Porridge,Breakfast & Instant Food
+Saffola Oats,Masala oats,150,400 g,120,TRUE,Breakfast & Instant Food; Oats & Porridge,Breakfast & Instant Food
+Porridge Mix,Mixed grain porridge,180,500 g,80,TRUE,Breakfast & Instant Food; Oats & Porridge,Breakfast & Instant Food
+Steel Cut Oats,Premium steel cut oats,220,500 g,70,TRUE,Breakfast & Instant Food; Oats & Porridge,Breakfast & Instant Food
+Flavored Oats,Various flavored instant oats,160,400 g,100,TRUE,Breakfast & Instant Food; Oats & Porridge,Breakfast & Instant Food
+MTR Upma,Ready to eat upma,90,300 g,120,TRUE,Breakfast & Instant Food; Ready-to-Eat,Breakfast & Instant Food
+Poha Mix,Instant poha mix,85,200 g,100,TRUE,Breakfast & Instant Food; Ready-to-Eat,Breakfast & Instant Food
+Idli Mix,Instant idli mix,95,500 g,90,TRUE,Breakfast & Instant Food; Ready-to-Eat,Breakfast & Instant Food
+Dosa Mix,Instant dosa mix,100,500 g,85,TRUE,Breakfast & Instant Food; Ready-to-Eat,Breakfast & Instant Food
+Vermicelli,Roasted vermicelli,45,500 g,150,TRUE,Breakfast & Instant Food; Ready-to-Eat,Breakfast & Instant Food
+,,,,,,,
+Lizol,Floor cleaner disinfectant,180,1 L,120,TRUE,Cleaning Essentials; Floor Cleaners,Cleaning Essentials
+Domex,Toilet floor cleaner,160,1 L,100,TRUE,Cleaning Essentials; Floor Cleaners,Cleaning Essentials
+Mr Muscle,All purpose floor cleaner,200,1 L,90,TRUE,Cleaning Essentials; Floor Cleaners,Cleaning Essentials
+Phenyl,Basic floor disinfectant,120,2 L,150,TRUE,Cleaning Essentials; Floor Cleaners,Cleaning Essentials
+Floor Wipes,Disposable floor cleaning wipes,250,30 pcs,80,TRUE,Cleaning Essentials; Floor Cleaners,Cleaning Essentials
+Vim Bar,Dishwashing bar,20,200 g,200,TRUE,Cleaning Essentials; Dishwashers,Cleaning Essentials
+Vim Liquid,Liquid dish soap,90,500 ml,150,TRUE,Cleaning Essentials; Dishwashers,Cleaning Essentials
+Pril,Premium dish cleaning liquid,130,750 ml,120,TRUE,Cleaning Essentials; Dishwashers,Cleaning Essentials
+Scotch Brite,Scrub pad pack,40,3 pcs,180,TRUE,Cleaning Essentials; Dishwashers,Cleaning Essentials
+Steel Scrubber,Steel wool scrubber,30,3 pcs,160,TRUE,Cleaning Essentials; Dishwashers,Cleaning Essentials
+Harpic,Toilet cleaner,90,500 ml,140,TRUE,Cleaning Essentials; Bathroom Cleaners,Cleaning Essentials
+Colin,Glass & surface cleaner,120,500 ml,130,TRUE,Cleaning Essentials; Bathroom Cleaners,Cleaning Essentials
+Bathroom Wipes,Disinfectant bathroom wipes,180,30 pcs,100,TRUE,Cleaning Essentials; Bathroom Cleaners,Cleaning Essentials
+Tile Cleaner,Specialized tile cleaner,220,1 L,80,TRUE,Cleaning Essentials; Bathroom Cleaners,Cleaning Essentials
+Drain Cleaner,Professional drain cleaner,150,500 ml,90,TRUE,Cleaning Essentials; Bathroom Cleaners,Cleaning Essentials
+,,,,,,,
+Almonds,Premium California almonds,450,500 g,100,TRUE,"Dry Fruits, Masala & Oil; Nuts & Dry Fruits","Dry Fruits, Masala & Oil"
+Cashews,Premium whole cashews,550,500 g,90,TRUE,"Dry Fruits, Masala & Oil; Nuts & Dry Fruits","Dry Fruits, Masala & Oil"
+Raisins,Golden raisins,180,500 g,120,TRUE,"Dry Fruits, Masala & Oil; Nuts & Dry Fruits","Dry Fruits, Masala & Oil"
+Mixed Dry Fruits,Assorted dry fruits pack,650,1 kg,80,TRUE,"Dry Fruits, Masala & Oil; Nuts & Dry Fruits","Dry Fruits, Masala & Oil"
+Walnuts,Premium walnuts,600,500 g,70,TRUE,"Dry Fruits, Masala & Oil; Nuts & Dry Fruits","Dry Fruits, Masala & Oil"
+Garam Masala,Blended spice mix,90,100 g,150,TRUE,"Dry Fruits, Masala & Oil; Spices & Masalas","Dry Fruits, Masala & Oil"
+Turmeric Powder,Pure turmeric powder,45,200 g,180,TRUE,"Dry Fruits, Masala & Oil; Spices & Masalas","Dry Fruits, Masala & Oil"
+Red Chilli Powder,Hot red chilli powder,60,200 g,160,TRUE,"Dry Fruits, Masala & Oil; Spices & Masalas","Dry Fruits, Masala & Oil"
+Coriander Powder,Ground coriander,40,200 g,170,TRUE,"Dry Fruits, Masala & Oil; Spices & Masalas","Dry Fruits, Masala & Oil"
+Black Pepper,Whole black pepper,120,100 g,140,TRUE,"Dry Fruits, Masala & Oil; Spices & Masalas","Dry Fruits, Masala & Oil"
+Olive Oil,Extra virgin olive oil,550,1 L,80,TRUE,"Dry Fruits, Masala & Oil; Cooking Oils","Dry Fruits, Masala & Oil"
+Sunflower Oil,Refined sunflower oil,180,1 L,150,TRUE,"Dry Fruits, Masala & Oil; Cooking Oils","Dry Fruits, Masala & Oil"
+Mustard Oil,Pure mustard oil,220,1 L,120,TRUE,"Dry Fruits, Masala & Oil; Cooking Oils","Dry Fruits, Masala & Oil"
+Groundnut Oil,Pure groundnut oil,210,1 L,100,TRUE,"Dry Fruits, Masala & Oil; Cooking Oils","Dry Fruits, Masala & Oil"
+Rice Bran Oil,Healthy rice bran oil,195,1 L,110,TRUE,"Dry Fruits, Masala & Oil; Cooking Oils","Dry Fruits, Masala & Oil"

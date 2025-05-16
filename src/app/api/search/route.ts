@@ -1,6 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
+interface ImageObject {
+  url?: string;
+  publicId?: string;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -26,6 +31,7 @@ export async function GET(request: Request) {
         quantity: true,
         images: true,
         slug: true,
+        defaultImagePublicId: true,
       },
       orderBy: {
         id: 'asc', // Ensure consistent ordering by ID
@@ -34,17 +40,38 @@ export async function GET(request: Request) {
       take: limit,
     });
 
-    // Transform the images field to match the ProductCard interface
+    // Transform the products to match the expected format
     const transformedProducts = products.map(product => {
+      // Parse the images JSON if it's a string
       let imageData = product.images;
-      // Ensure imageData is valid or use null
-      if (!imageData || (typeof imageData === 'string' && imageData.trim() === '')) {
-        imageData = null;
+      if (typeof imageData === 'string') {
+        try {
+          imageData = JSON.parse(imageData);
+        } catch {
+          imageData = null;
+        }
       }
-      
+
+      // Ensure images is an array of objects with url property
+      const images = Array.isArray(imageData) 
+        ? imageData.map(img => {
+            if (typeof img === 'string') {
+              return { url: img };
+            }
+            if (typeof img === 'object' && img !== null) {
+              const imageObj = img as ImageObject;
+              return {
+                url: imageObj.url || '',
+                publicId: imageObj.publicId
+              };
+            }
+            return { url: '' };
+          })
+        : [];
+
       return {
         ...product,
-        images: imageData ? [{ url: imageData }] : [],
+        images: images.filter(img => img.url && img.url.trim() !== ''),
       };
     });
 

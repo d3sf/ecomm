@@ -23,6 +23,7 @@ interface CategoryListProps {
   currentPath?: number[];
   onPathChange?: (path: number[]) => void;
   breadcrumbNames?: string[];
+  onSearch: (term: string) => void;
 }
 
 const CategoryList: React.FC<CategoryListProps> = ({
@@ -40,6 +41,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
   currentPath = [],
   onPathChange = () => {},
   breadcrumbNames = [],
+  onSearch,
 }) => {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
   const [showSubcategories, setShowSubcategories] = useState(false);
@@ -99,6 +101,16 @@ const CategoryList: React.FC<CategoryListProps> = ({
 
   return (
     <div className="mt-4 pb-8">
+      {/* Search Bar */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search categories..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          onChange={(e) => onSearch(e.target.value)}
+        />
+      </div>
+
       {/* Breadcrumb Navigation */}
       <div className="flex items-center mb-4">
         <button
@@ -152,6 +164,9 @@ const CategoryList: React.FC<CategoryListProps> = ({
                 />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Sr. No.
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 ID
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -172,7 +187,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {categories.map((category) => {
+            {categories.map((category, index) => {
               const hasChildren = allCategories.some(cat => cat.parentId === category.id);
               const subcategories = allCategories.filter(cat => cat.parentId === category.id);
               const isExpanded = expandedCategories.includes(category.id || 0);
@@ -193,6 +208,9 @@ const CategoryList: React.FC<CategoryListProps> = ({
                           handleSelectionChange(newSelectedIds);
                         }}
                       />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {category.id}

@@ -1,18 +1,18 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
-import { CategorySchema, CategoryUpdateSchema } from '@/lib/zodvalidation';
+import {  CategoryUpdateSchema } from '@/lib/zodvalidation';
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id: idStr } = await params;
-    const id = parseInt(idStr);
+    const { id } = await params;
+    const categoryId = parseInt(id);
     
     // Validate ID
-    if (isNaN(id) || id <= 0) {
+    if (isNaN(categoryId) || categoryId <= 0) {
       return NextResponse.json(
         { error: 'Invalid category ID' },
         { status: 400 }
@@ -20,7 +20,7 @@ export async function GET(
     }
 
     const category = await prisma.category.findUnique({
-      where: { id }
+      where: { id: categoryId }
     });
 
     if (!category) {

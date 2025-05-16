@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 
 interface AddressFormProps {
   onCancel: () => void;
   onSubmit: (address: AddressFormData) => Promise<void>;
   initialData?: Partial<AddressFormData>;
+  isEditing?: boolean;
 }
 
 interface AddressFormData {
@@ -22,7 +23,7 @@ interface AddressFormData {
   customLabel?: string;
 }
 
-const AddressForm: React.FC<AddressFormProps> = ({ onCancel, onSubmit, initialData }) => {
+const AddressForm: React.FC<AddressFormProps> = ({ onCancel, onSubmit, initialData, isEditing = false }) => {
   const [formData, setFormData] = useState<AddressFormData>({
     fullName: initialData?.fullName || "",
     phoneNumber: initialData?.phoneNumber || "",
@@ -36,12 +37,30 @@ const AddressForm: React.FC<AddressFormProps> = ({ onCancel, onSubmit, initialDa
     customLabel: initialData?.customLabel || "",
   });
 
+  // Update form data when initialData changes (useful for editing)
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        fullName: initialData.fullName || "",
+        phoneNumber: initialData.phoneNumber || "",
+        addressLine1: initialData.addressLine1 || "",
+        addressLine2: initialData.addressLine2 || "",
+        city: initialData.city || "",
+        state: initialData.state || "",
+        postalCode: initialData.postalCode || "",
+        isDefault: initialData.isDefault || false,
+        addressLabel: initialData.addressLabel || "HOME",
+        customLabel: initialData.customLabel || "",
+      });
+    }
+  }, [initialData]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await onSubmit(formData);
-    } catch (error) {
-      toast.error("Failed to save address");
+    } catch {
+      toast.error(isEditing ? "Failed to update address" : "Failed to save address");
     }
   };
 
@@ -186,7 +205,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ onCancel, onSubmit, initialDa
           type="submit"
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
         >
-          Save Address
+          {isEditing ? "Update Address" : "Save Address"}
         </button>
       </div>
     </form>

@@ -42,27 +42,14 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories, onSub
 
   // Reset form when switching between edit and add modes
   useEffect(() => {
-    if (category) {
-      // Edit mode - load category data
-      setFormData({
-        name: category.name,
-        slug: category.slug,
-        parentId: category.parentId,
-        sortOrder: category.sortOrder || 0,
-        published: category.published,
-        image: category.image,
-      });
-    } else {
-      // Add mode - reset to defaults
-      setFormData({
-        name: '',
-        slug: '',
-        parentId: null,
-        sortOrder: 0,
-        published: true,
-        image: undefined
-      });
-    }
+    setFormData(category ? {
+      name: category.name,
+      slug: category.slug,
+      parentId: category.parentId,
+      sortOrder: category.sortOrder || 0,
+      published: category.published,
+      image: category.image,
+    } : defaultFormData);
   }, [category]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,6 +67,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, categories, onSub
       console.log('Final category data:', updatedCategory);
 
       onSubmit(updatedCategory);
+      setFormData(defaultFormData); // Reset form after successful submission
       router.push('/admin/categories');
       router.refresh();
     } catch (error) {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Category } from '@prisma/client';
+import { HomepageSectionsSkeleton } from '@/components/admin/skeletons';
 
 interface HomepageSection {
   id: number;
@@ -122,7 +123,7 @@ export default function HomepageSectionsManager() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <HomepageSectionsSkeleton />;
   }
 
   return (

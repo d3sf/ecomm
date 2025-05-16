@@ -13,6 +13,10 @@ export default function UserDropdown() {
   const router = useRouter();
 
   useEffect(() => {
+    console.log('Session data:', session);
+  }, [session]);
+
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
@@ -33,14 +37,14 @@ export default function UserDropdown() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="p-2 hover:bg-gray-100 rounded-full"
-      >
+      > 
         <User size={24} />
       </button>
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
           {session ? (
-            session.user?.type === "user" ? (
+            session.user?.type === "user" || !session.user?.type ? (
               <>
                 <Link
                   href="/account"

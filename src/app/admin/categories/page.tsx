@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios, { AxiosError } from "axios";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -10,8 +10,9 @@ import CategoryList from './components/CategoryList';
 import SlidingPanel from '@/components/admin/SlidingPanel';
 import { toast } from "react-hot-toast";
 import { CategoryType } from '@/lib/zodvalidation';
-import { Plus, ListTree, Trash2 } from 'lucide-react';
+import { Plus, ListTree, Trash2, Download, Upload } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
+import { TableSkeleton } from '@/components/admin/skeletons';
 
 const CategoriesPage = () => {
   const pathname = usePathname();
@@ -31,7 +32,10 @@ const CategoriesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 10;
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Parse URL path to determine current category path
   useEffect(() => {
@@ -63,7 +67,18 @@ const CategoriesPage = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get("/api/admin/categories");
+      let url = "/api/admin/categories";
+      const params = new URLSearchParams();
+      
+      if (searchTerm) {
+        params.append("search", searchTerm);
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      const response = await axios.get(url);
       if (!response.data) {
         console.error("Invalid API response structure:", response);
         toast.error("Failed to load categories: Invalid response format");
@@ -96,7 +111,7 @@ const CategoriesPage = () => {
 
   useEffect(() => {
     fetchCategories();
-  }, [currentParentId, currentPage]);
+  }, [currentParentId, currentPage, searchTerm]);
 
   const handlePathChange = (newPath: number[]) => {
     setCurrentPath(newPath);
@@ -112,6 +127,11 @@ const CategoriesPage = () => {
 
   const handleCategorySelect = (category: CategoryType) => {
     setSelectedCategory(category);
+    setIsAddFormOpen(true);
+  };
+
+  const handleAddCategory = () => {
+    setSelectedCategory(undefined);
     setIsAddFormOpen(true);
   };
 
@@ -216,15 +236,104 @@ const CategoriesPage = () => {
     setCurrentPage(page);
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handleExport = async () => {
+    try {
+      const response = await fetch('/api/admin/categories/export');
+      if (!response.ok) throw new Error('Export failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'categories-export.csv';
+      
+      // Just trigger the download without showing any notification
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 100);
+    } catch (error) {
+      console.error('Error exporting categories:', error);
+      toast.error('Failed to export categories');
+    }
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/admin/categories/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Import failed');
+      }
+
+      const result = await response.json();
+      toast.success(
+        `Import completed: ${result.results.created} created, ${result.results.updated} updated`
+      );
+      
+      if (result.results.errors.length > 0) {
+        toast.error(`${result.results.errors.length} errors occurred during import`);
+        console.error('Import errors:', result.results.errors);
+      }
+
+      // Refresh the categories list
+      await fetchCategories();
+    } catch (error) {
+      console.error('Error importing categories:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to import categories');
+    } finally {
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Category Management</h1>
+        <h1 className="text-2xl font-bold">Categories</h1>
         <div className="flex gap-4 p-4 bg-white rounded-lg shadow-md">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImport}
+            accept=".csv"
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            <Upload className="w-4 h-4" />
+            Import
+          </button>
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            <Download className="w-4 h-4" />
+            Export
+          </button>
           <button
             onClick={() => setIsTreeOpen(true)}
             className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -233,11 +342,8 @@ const CategoriesPage = () => {
             View Category Tree
           </button>
           <button
-            onClick={() => {
-              setSelectedCategory(undefined);
-              setIsAddFormOpen(true);
-            }}
-            className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            onClick={handleAddCategory}
+            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
           >
             <Plus size={20} />
             Add Category
@@ -253,22 +359,39 @@ const CategoriesPage = () => {
         </div>
       </div>
 
-      <CategoryList
-        categories={categories}
-        allCategories={allCategories}
-        onTogglePublish={handleTogglePublish}
-        onDelete={handleCategoryDelete}
-        onEdit={handleCategorySelect}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        itemsPerPage={itemsPerPage}
-        onPageChange={handlePageChange}
-        onSelectionChange={setSelectedCategoryIds}
-        currentPath={currentPath}
-        onPathChange={handlePathChange}
-        breadcrumbNames={breadcrumbNames}
-      />
+      {/* Breadcrumb navigation */}
+      <div className="mb-4 flex flex-wrap items-center text-sm">
+        {breadcrumbNames.map((name, index) => (
+          <span key={index} className="text-sm text-gray-500">
+            {name}
+            {index < breadcrumbNames.length - 1 && ' / '}
+          </span>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <TableSkeleton rows={6} columns={4} />
+      ) : (
+        <DndProvider backend={HTML5Backend}>
+          <CategoryList 
+            categories={categories}
+            allCategories={allCategories}
+            onTogglePublish={handleTogglePublish}
+            onDelete={handleCategoryDelete}
+            onEdit={handleCategorySelect}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onSelectionChange={setSelectedCategoryIds}
+            currentPath={currentPath}
+            onPathChange={handlePathChange}
+            breadcrumbNames={breadcrumbNames}
+            onSearch={handleSearch}
+          />
+        </DndProvider>
+      )}
 
       {/* Category Tree Sliding Panel */}
       <SlidingPanel

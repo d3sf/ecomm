@@ -1,8 +1,11 @@
 "use client"
-import { useEffect, useState } from "react";
-import axios, { AxiosError } from "axios";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import axios, { AxiosError } from "axios";
+import { ChevronDown, Eye, FileText } from "lucide-react";
+import Link from "next/link";
+import { TableSkeleton } from "@/components/admin/skeletons";
 
 interface Order {
   id: number;
@@ -50,20 +53,7 @@ export default function OrdersList() {
   const router = useRouter();
   const { status } = useSession();
 
-  useEffect(() => {
-    // Redirect to login if not authenticated
-    if (status === "unauthenticated") {
-      router.push("/admin/login");
-      return;
-    }
-
-    // Only fetch if authenticated
-    if (status === "authenticated") {
-      fetchOrders();
-    }
-  }, [router, status]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const response = await axios.get("/api/admin/orders");
       setOrders(response.data);
@@ -79,7 +69,18 @@ export default function OrdersList() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/admin/login");
+      return;
+    }
+
+    if (status === "authenticated") {
+      fetchOrders();
+    }
+  }, [router, status, fetchOrders]);
 
   const handleStatusChange = async (orderId: number, newStatus: string) => {
     setUpdatingStatus(orderId);
@@ -88,7 +89,6 @@ export default function OrdersList() {
         status: newStatus
       });
       
-      // Update the local state
       setOrders(orders.map(order => 
         order.id === orderId 
           ? { ...order, status: newStatus }
@@ -105,104 +105,144 @@ export default function OrdersList() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PENDING":
-        return "bg-yellow-50 text-yellow-800 border-yellow-200";
+        return "bg-yellow-50 text-yellow-700 border border-yellow-200";
       case "PROCESSING":
-        return "bg-blue-50 text-blue-800 border-blue-200";
+        return "bg-blue-50 text-blue-700 border border-blue-200";
       case "DELIVERED":
-        return "bg-green-50 text-green-800 border-green-200";
+        return "bg-green-50 text-green-700 border border-green-200";
       case "CANCELLED":
-        return "bg-red-50 text-red-800 border-red-200";
+        return "bg-red-50 text-red-700 border border-red-200";
       default:
-        return "bg-gray-50 text-gray-800 border-gray-200";
+        return "bg-gray-50 text-gray-700 border border-gray-200";
     }
   };
 
-  // Show loading while session is being fetched
   if (status === "loading" || isLoading) {
-    return <div className="flex justify-center p-8">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-    </div>;
+    return <TableSkeleton rows={6} columns={8} />;
   }
 
   if (error) {
     return (
-      <div className="p-4 text-center">
-        <div className="p-4 bg-red-50 text-red-600 rounded-md border border-red-200 mb-4">
-          {error}
+      <div className="max-w-2xl mx-auto p-6">
+        <div className="p-6 bg-rose-50 text-rose-600 rounded-lg border border-rose-200 mb-6 shadow-sm">
+          <p className="text-center text-lg">{error}</p>
         </div>
-        <button 
-          onClick={() => router.push("/")}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-        >
-          Return to Home
-        </button>
+        <div className="text-center">
+          <button 
+            onClick={() => router.push("/")}
+            className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            Return to Home
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white">
-        <thead>
-          <tr>
-            <th className="py-2">Order ID</th>
-            <th className="py-2">Customer</th>
-            <th className="py-2">Total Amount</th>
-            <th className="py-2">Payment Method</th>
-            <th className="py-2">Status</th>
-            <th className="py-2">Action</th>
-            <th className="py-2">Order Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders.map((order) => (
-            <tr key={order.id} className="text-center">
-              <td className="py-2">{order.id}</td>
-              <td className="py-2">{order.user.name} ({order.user.email})</td>
-              <td className="py-2">₹{order.totalAmount.toFixed(2)}</td>
-              <td className="py-2">
-                <span className="px-2 py-1 rounded-full text-xs font-medium border bg-gray-50 text-gray-800 border-gray-200">
-                  {order.paymentMethod}
-                </span>
-              </td>
-              <td className="py-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
-                  {order.status}
-                </span>
-              </td>
-              <td className="py-2">
-                <div className="flex items-center justify-center gap-2">
-                  <select
-                    value={order.status}
-                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                    disabled={updatingStatus === order.id}
-                    className="px-2 py-1 rounded border border-gray-300 bg-white"
-                  >
-                    {ORDER_STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
-                  {updatingStatus === order.id && (
-                    <span className="ml-2 text-sm text-gray-500">Updating...</span>
-                  )}
-                </div>
-              </td>
-              <td className="py-2">
-                {new Date(order.createdAt).toLocaleString('en-IN', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true
-                })}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className="bg-white rounded-lg shadow">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Invoice No.
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Order Time
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Customer
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Payment Method
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Action
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Invoice
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {orders.map((order) => (
+                <tr key={order.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2.5 whitespace-nowrap text-sm font-medium text-gray-900">
+                    #{order.id}
+                  </td>
+                  <td className="px-4 py-2.5 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(order.createdAt).toLocaleString('en-IN', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                  </td>
+                  <td className="px-4 py-2.5 whitespace-nowrap text-sm text-gray-900">
+                    <div className="font-medium">{order.user.name}</div>
+                  </td>
+                  <td className="px-4 py-2.5 whitespace-nowrap text-sm text-gray-500">
+                    {order.paymentMethod}
+                  </td>
+                  <td className="px-4 py-2.5 whitespace-nowrap text-sm font-medium text-gray-900">
+                    ₹{order.totalAmount.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-2.5 whitespace-nowrap">
+                    <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5 whitespace-nowrap">
+                    <div className="relative inline-block w-28">
+                      <select
+                        value={order.status}
+                        onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                        disabled={updatingStatus === order.id}
+                        className="w-full appearance-none pl-2 pr-7 py-1 rounded border border-gray-300 bg-white text-xs font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {ORDER_STATUSES.map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="h-3 w-3 text-gray-500 absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex items-center space-x-2">
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="text-gray-600 hover:text-indigo-600 transition-colors"
+                        title="View Order Details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="text-gray-600 hover:text-indigo-600 transition-colors"
+                        title="View Invoice"
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
   );
 } 

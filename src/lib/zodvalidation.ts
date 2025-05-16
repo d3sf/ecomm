@@ -12,6 +12,7 @@ const CategorySchemaBase = z.object({
       url: z.string().url(),
       publicId: z.string(),
     })
+    .nullable()
     .optional(),
   published: z.boolean().default(true),
 });
@@ -25,7 +26,7 @@ interface CategorySchemaType {
   image?: {
     url: string;
     publicId: string;
-  };
+  } | null;
   published?: boolean;
   children?: CategorySchemaType[];
 }
@@ -60,8 +61,9 @@ export const ProductSchema = z.object({
   images: z
     .array(
       z.object({
-        url: z.string().url(),
-        publicId: z.string(),
+        url: z.string().url().optional(),
+        publicId: z.string().optional(),
+        isDefault: z.boolean().optional()
       })
     )
     .optional(),
@@ -79,11 +81,12 @@ export const ProductSchema = z.object({
             url: z.string().url(),
             publicId: z.string(),
           })
+          .nullable()
           .optional(),
         published: z.boolean().default(true),
       })
     })
-  ).optional(),
+  ).optional().nullable().default([]),
   price: z.number().positive("Price must be greater than 0"),
   quantity: z.string().min(1, "Quantity is required"),
   slug: z.string().min(1, "Slug is required"),

@@ -10,6 +10,7 @@ import PaymentMethodSelection from "./components/PaymentMethodSelection";
 import OrderSummary from "./components/OrderSummary";
 import CheckoutSteps from "./components/CheckoutSteps";
 import RazorpayPayment from "./components/RazorpayPayment";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 const steps = ["Address", "Payment", "Review"];
 
@@ -40,6 +41,7 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subtotal, setSubtotal] = useState(0);
   const [orderId, setOrderId] = useState<number | null>(null);
+  const [isOrderComplete, setIsOrderComplete] = useState(false);
 
   // Check if user is authenticated
   useEffect(() => {
@@ -50,16 +52,47 @@ export default function CheckoutPage() {
 
   // Fetch cart items
   useEffect(() => {
-    if (items.length === 0) {
+    // Skip the empty cart check if an order was just completed
+    if (items.length === 0 && !isOrderComplete) {
       router.push("/");
       toast.error("Your cart is empty");
       return;
     }
-
+    
+    // Skip API calls if an order was just completed
+    if (isOrderComplete) {
+      return;
+    }
+    
     const fetchCartItems = async () => {
       try {
-        const response = await fetch('/api/products');
+        // Extract product IDs from cart items
+        const productIds = items.map(item => item.productId);
+        
+        // Use the dedicated cart-products API to fetch only the products in the cart
+        const response = await fetch('/api/cart-products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productIds }),
+        });
+        
+        if (!response.ok) {
+          // Only show error if not during order completion
+          if (!isOrderComplete) {
+            throw new Error('Failed to fetch products');
+          }
+          return;
+        }
+        
         const { products } = await response.json();
+        
+        if (!products || !Array.isArray(products)) {
+          console.error('Invalid products data returned from API');
+          toast.error('Failed to load cart items');
+          return;
+        }
 
         const itemsWithDetails = items.map(item => {
           const product = products.find((p: { id: number | string }) => String(p.id) === String(item.productId));
@@ -73,6 +106,12 @@ export default function CheckoutPage() {
           return null;
         }).filter(Boolean) as CartItem[];
 
+        if (itemsWithDetails.length === 0) {
+          toast.error('Could not find products in your cart. Please try again.');
+          router.push('/');
+          return;
+        }
+        
         setCartItems(itemsWithDetails);
         
         // Calculate subtotal
@@ -88,7 +127,11 @@ export default function CheckoutPage() {
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching cart items:', error);
-        toast.error('Failed to load cart items');
+        // Only show error toast if not during order completion
+        if (!isOrderComplete) {
+          toast.error('Failed to load cart items');
+          router.push('/');
+        }
       }
     };
 
@@ -106,12 +149,13 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (currentStep === 1 && paymentMethod === 'RAZORPAY') {
+      toast.error('Razorpay payments are currently unavailable');
+      return;
+    }
+
     if (currentStep < steps.length - 1) {
-      if (currentStep === 1 && paymentMethod === 'RAZORPAY') {
-        handleCreateOrder();
-      } else {
-        setCurrentStep(currentStep + 1);
-      }
+      setCurrentStep(currentStep + 1);
     }
   };
 
@@ -164,8 +208,13 @@ export default function CheckoutPage() {
       setOrderId(data.id);
 
       if (paymentMethod === 'COD') {
-        clearCart();
+        // Mark order as complete to prevent empty cart message
+        setIsOrderComplete(true);
+        // Show success message
         toast.success('Order placed successfully!');
+        // Clear cart
+        clearCart();
+        // Navigate to order page
         router.push(`/orders/${data.id}`);
       } else if (paymentMethod === 'RAZORPAY') {
         // Proceed to payment step with Razorpay
@@ -204,7 +253,7 @@ export default function CheckoutPage() {
   if (status === "loading" || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
