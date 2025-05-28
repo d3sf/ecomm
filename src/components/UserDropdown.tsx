@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
-import { User } from "lucide-react";
+import { User, Package, MapPin, LogOut, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -48,15 +48,33 @@ export default function UserDropdown() {
               <>
                 <Link
                   href="/account"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   onClick={() => setIsOpen(false)}
                 >
+                  <UserCircle className="w-4 h-4 mr-2" />
                   Account
+                </Link>
+                <Link
+                  href="/account?tab=orders"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Package className="w-4 h-4 mr-2" />
+                  Orders
+                </Link>
+                <Link
+                  href="/account?tab=addresses"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Addresses
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
+                  <LogOut className="w-4 h-4 mr-2" />
                   Logout
                 </button>
               </>

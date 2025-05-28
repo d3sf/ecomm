@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "react-hot-toast";
-import AddressSelection from "./components/AddressSelection";
-import PaymentMethodSelection from "./components/PaymentMethodSelection";
-import OrderSummary from "./components/OrderSummary";
-import CheckoutSteps from "./components/CheckoutSteps";
-import RazorpayPayment from "./components/RazorpayPayment";
+import AddressSelection from "@/components/checkout/AddressSelection";
+import PaymentMethodSelection from "@/components/checkout/PaymentMethodSelection";
+import OrderSummary from "@/components/checkout/OrderSummary";
+import CheckoutSteps from "@/components/checkout/CheckoutSteps";
+import RazorpayPayment from "@/components/checkout/RazorpayPayment";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 const steps = ["Address", "Payment", "Review"];
@@ -214,8 +214,8 @@ export default function CheckoutPage() {
         toast.success('Order placed successfully!');
         // Clear cart
         clearCart();
-        // Navigate to order page
-        router.push(`/orders/${data.id}`);
+        // Navigate to account page with orders section
+        router.push("/account?tab=orders");
       } else if (paymentMethod === 'RAZORPAY') {
         // Proceed to payment step with Razorpay
         setCurrentStep(currentStep + 1);
@@ -242,7 +242,7 @@ export default function CheckoutPage() {
   const handlePaymentSuccess = (paymentData: PaymentVerificationData) => {
     clearCart();
     toast.success(`Payment successful! ${paymentData.message}`);
-    router.push(`/orders/${orderId}`);
+    router.push("/account?tab=orders");
   };
 
   const handlePaymentError = (error: Error) => {

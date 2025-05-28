@@ -96,7 +96,7 @@ export async function POST(req: Request) {
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       key: keyId,
-      name: "QuickShop",
+      name: "Merugo",
       description: `Order #${orderId}`,
       orderId: orderId,
       prefillData: {

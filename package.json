@@ -1,5 +1,5 @@
 {
-  "name": "quickshop",
+  "name": "merugo",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -17,10 +17,12 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.0.1",
     "@prisma/client": "^6.6.0",
     "@radix-ui/react-dialog": "^1.1.13",
     "@radix-ui/react-progress": "^1.1.6",
+    "@reduxjs/toolkit": "^2.8.2",
     "@tailwindcss/postcss": "^4.0.17",
     "@types/bcryptjs": "^3.0.0",
     "@types/jspdf": "^2.0.0",
@@ -47,6 +49,7 @@
     "react-icons": "^5.5.0",
     "react-intersection-observer": "^9.16.0",
     "react-loading-skeleton": "^3.5.0",
+    "react-redux": "^9.2.0",
     "resend": "^4.4.1",
     "tailwind-merge": "^3.2.0",
     "tailwindcss": "^4.0.17",

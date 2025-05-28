@@ -17,8 +17,8 @@ export async function GET() {
   try {
     // Create main folder first
     try {
-      console.log('Creating main quickshop folder');
-      await cloudinary.v2.api.create_folder('quickshop');
+      console.log('Creating main merugo folder');
+      await cloudinary.v2.api.create_folder('merugo');
     } catch (error: unknown) {
       const err = error as { error?: { message?: string } };
       if (!err.error?.message?.includes('already exists')) {
@@ -32,8 +32,8 @@ export async function GET() {
     
     for (const subfolder of subfolders) {
       try {
-        console.log(`Creating subfolder: quickshop/${subfolder}`);
-        await cloudinary.v2.api.create_folder(`quickshop/${subfolder}`);
+        console.log(`Creating subfolder: merugo/${subfolder}`);
+        await cloudinary.v2.api.create_folder(`merugo/${subfolder}`);
       } catch (error: unknown) {
         const err = error as { error?: { message?: string } };
         if (!err.error?.message?.includes('already exists')) {
@@ -45,18 +45,18 @@ export async function GET() {
 
     // List all folders to verify
     const result = await cloudinary.v2.api.root_folders();
-    const quickshopFolder = result.folders.find((f: CloudinaryFolder) => f.name === 'quickshop');
+    const merugoFolder = result.folders.find((f: CloudinaryFolder) => f.name === 'merugo');
     
     let subfoldersList = [];
-    if (quickshopFolder) {
-      const subfolderResult = await cloudinary.v2.api.sub_folders('quickshop');
+    if (merugoFolder) {
+      const subfolderResult = await cloudinary.v2.api.sub_folders('merugo');
       subfoldersList = subfolderResult.folders;
     }
 
     return NextResponse.json({ 
       success: true, 
       rootFolders: result.folders,
-      quickshopSubfolders: subfoldersList
+      merugoSubfolders: subfoldersList
     });
   } catch (error) {
     console.error('Error setting up folders:', error);

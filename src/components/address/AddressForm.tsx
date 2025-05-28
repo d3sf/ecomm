@@ -1,16 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { toast } from "react-hot-toast";
+import { useState } from "react";
+import { X, Home, Building, Bookmark } from "lucide-react";
 
-interface AddressFormProps {
-  onCancel: () => void;
-  onSubmit: (address: AddressFormData) => Promise<void>;
-  initialData?: Partial<AddressFormData>;
-  isEditing?: boolean;
-}
-
-interface AddressFormData {
+interface Address {
+  id?: number;
   fullName: string;
   phoneNumber: string;
   addressLine1: string;
@@ -23,8 +17,17 @@ interface AddressFormData {
   customLabel?: string;
 }
 
-const AddressForm: React.FC<AddressFormProps> = ({ onCancel, onSubmit, initialData, isEditing = false }) => {
-  const [formData, setFormData] = useState<AddressFormData>({
+interface AddressFormProps {
+  onSave: (address: Address) => void;
+  onCancel: () => void;
+  initialData?: Address | null;
+}
+
+export default function AddressForm({ onSave, onCancel, initialData }: AddressFormProps) {
+  const [formData, setFormData] = useState<Address>({
+    id: initialData?.id,
+    addressLabel: initialData?.addressLabel || "HOME",
+    customLabel: initialData?.customLabel,
     fullName: initialData?.fullName || "",
     phoneNumber: initialData?.phoneNumber || "",
     addressLine1: initialData?.addressLine1 || "",
@@ -33,183 +36,227 @@ const AddressForm: React.FC<AddressFormProps> = ({ onCancel, onSubmit, initialDa
     state: initialData?.state || "",
     postalCode: initialData?.postalCode || "",
     isDefault: initialData?.isDefault || false,
-    addressLabel: initialData?.addressLabel || "HOME",
-    customLabel: initialData?.customLabel || "",
   });
 
-  // Update form data when initialData changes (useful for editing)
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        fullName: initialData.fullName || "",
-        phoneNumber: initialData.phoneNumber || "",
-        addressLine1: initialData.addressLine1 || "",
-        addressLine2: initialData.addressLine2 || "",
-        city: initialData.city || "",
-        state: initialData.state || "",
-        postalCode: initialData.postalCode || "",
-        isDefault: initialData.isDefault || false,
-        addressLabel: initialData.addressLabel || "HOME",
-        customLabel: initialData.customLabel || "",
-      });
-    }
-  }, [initialData]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await onSubmit(formData);
-    } catch {
-      toast.error(isEditing ? "Failed to update address" : "Failed to save address");
-    }
+    onSave(formData);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex items-center gap-4">
-        <label className="w-40 font-medium">Full Name</label>
-        <input
-          type="text"
-          className="flex-1 p-2 border border-gray-300 rounded"
-          value={formData.fullName}
-          onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-          required
-        />
-      </div>
-
-      <div className="flex items-center gap-4">
-        <label className="w-40 font-medium">Phone Number</label>
-        <input
-          type="tel"
-          className="flex-1 p-2 border border-gray-300 rounded"
-          value={formData.phoneNumber}
-          onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-          required
-        />
-      </div>
-
-      <div className="flex items-center gap-4">
-        <label className="w-40 font-medium">Address Line 1</label>
-        <input
-          type="text"
-          className="flex-1 p-2 border border-gray-300 rounded"
-          value={formData.addressLine1}
-          onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
-          required
-        />
-      </div>
-
-      <div className="flex items-center gap-4">
-        <label className="w-40 font-medium">Address Line 2</label>
-        <input
-          type="text"
-          className="flex-1 p-2 border border-gray-300 rounded"
-          value={formData.addressLine2}
-          onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })}
-        />
-      </div>
-
-      <div className="flex items-center gap-4">
-        <label className="w-40 font-medium">City</label>
-        <input
-          type="text"
-          className="flex-1 p-2 border border-gray-300 rounded"
-          value={formData.city}
-          onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-          required
-        />
-      </div>
-
-      <div className="flex items-center gap-4">
-        <label className="w-40 font-medium">State</label>
-        <input
-          type="text"
-          className="flex-1 p-2 border border-gray-300 rounded"
-          value={formData.state}
-          onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-          required
-        />
-      </div>
-
-      <div className="flex items-center gap-4">
-        <label className="w-40 font-medium">Postal Code</label>
-        <input
-          type="text"
-          className="flex-1 p-2 border border-gray-300 rounded"
-          value={formData.postalCode}
-          onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-          required
-        />
-      </div>
-
-      <div className="flex items-center gap-4">
-        <label className="w-40 font-medium">Address Label</label>
-        <select
-          className="flex-1 p-2 border border-gray-300 rounded"
-          value={formData.addressLabel}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              addressLabel: e.target.value as "HOME" | "WORK" | "OTHER",
-            })
-          }
-        >
-          <option value="HOME">Home</option>
-          <option value="WORK">Work</option>
-          <option value="OTHER">Other</option>
-        </select>
-      </div>
-
-      {formData.addressLabel === "OTHER" && (
-        <div className="flex items-center gap-4">
-          <label className="w-40 font-medium">Custom Label</label>
-          <input
-            type="text"
-            className="flex-1 p-2 border border-gray-300 rounded"
-            value={formData.customLabel}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                customLabel: e.target.value,
-              })
-            }
-            required
-          />
-        </div>
-      )}
-
-      <div className="flex items-center gap-4">
-        <label className="w-40 font-medium">Default Address</label>
-        <input
-          type="checkbox"
-          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          checked={formData.isDefault}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              isDefault: e.target.checked,
-            })
-          }
-        />
-      </div>
-
-      <div className="flex justify-end gap-4 mt-6">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">
+          {initialData ? "Edit Address" : "Add New Address"}
+        </h3>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          className="text-gray-500 hover:text-gray-700"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Full Name
+          </label>
+          <input
+            type="text"
+            required
+            value={formData.fullName}
+            onChange={(e) =>
+              setFormData({ ...formData, fullName: e.target.value })
+            }
+            className="mt-1 block w-full px-4 py-3 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Phone Number
+          </label>
+          <input
+            type="tel"
+            required
+            value={formData.phoneNumber}
+            onChange={(e) =>
+              setFormData({ ...formData, phoneNumber: e.target.value })
+            }
+            className="mt-1 block w-full px-4 py-3 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Address Line 1
+          </label>
+          <input
+            type="text"
+            required
+            value={formData.addressLine1}
+            onChange={(e) =>
+              setFormData({ ...formData, addressLine1: e.target.value })
+            }
+            className="mt-1 block w-full px-4 py-3 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Address Line 2 (Optional)
+          </label>
+          <input
+            type="text"
+            value={formData.addressLine2}
+            onChange={(e) =>
+              setFormData({ ...formData, addressLine2: e.target.value })
+            }
+            className="mt-1 block w-full px-4 py-3 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">City</label>
+          <input
+            type="text"
+            required
+            value={formData.city}
+            onChange={(e) =>
+              setFormData({ ...formData, city: e.target.value })
+            }
+            className="mt-1 block w-full px-4 py-3 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">State</label>
+          <input
+            type="text"
+            required
+            value={formData.state}
+            onChange={(e) =>
+              setFormData({ ...formData, state: e.target.value })
+            }
+            className="mt-1 block w-full px-4 py-3 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Postal Code
+          </label>
+          <input
+            type="text"
+            required
+            value={formData.postalCode}
+            onChange={(e) =>
+              setFormData({ ...formData, postalCode: e.target.value })
+            }
+            className="mt-1 block w-full px-4 py-3 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Address Type
+          </label>
+          <div className="mt-2 flex space-x-6">
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, addressLabel: "HOME" })}
+              className={`flex flex-col items-center transition-colors duration-200 ${
+                formData.addressLabel === "HOME"
+                  ? "text-indigo-600"
+                  : "text-gray-400 hover:text-indigo-500"
+              }`}
+            >
+              <Home className="w-6 h-6" />
+              <span className="text-xs mt-1">Home</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, addressLabel: "WORK" })}
+              className={`flex flex-col items-center transition-colors duration-200 ${
+                formData.addressLabel === "WORK"
+                  ? "text-indigo-600"
+                  : "text-gray-400 hover:text-indigo-500"
+              }`}
+            >
+              <Building className="w-6 h-6" />
+              <span className="text-xs mt-1">Work</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, addressLabel: "OTHER" })}
+              className={`flex flex-col items-center transition-colors duration-200 ${
+                formData.addressLabel === "OTHER"
+                  ? "text-indigo-600"
+                  : "text-gray-400 hover:text-indigo-500"
+              }`}
+            >
+              <Bookmark className="w-6 h-6" />
+              <span className="text-xs mt-1">Other</span>
+            </button>
+          </div>
+        </div>
+
+        {formData.addressLabel === "OTHER" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Custom Label
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.customLabel}
+              onChange={(e) =>
+                setFormData({ ...formData, customLabel: e.target.value })
+              }
+              className="mt-1 block w-full px-4 py-3 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base"
+              placeholder="Enter custom label"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          id="defaultAddress"
+          checked={formData.isDefault}
+          onChange={(e) =>
+            setFormData({ ...formData, isDefault: e.target.checked })
+          }
+          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+        />
+        <label
+          htmlFor="defaultAddress"
+          className="ml-2 block text-sm text-gray-900"
+        >
+          Set as default address
+        </label>
+      </div>
+
+      <div className="flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+          className="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >
-          {isEditing ? "Update Address" : "Save Address"}
+          {initialData ? "Update Address" : "Add Address"}
         </button>
       </div>
     </form>
   );
-};
-
-export default AddressForm; 
+} 

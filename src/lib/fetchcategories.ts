@@ -37,8 +37,14 @@ export async function getData(categoryId: number) {
   console.log("Fetching products for category ID:", categoryId);
   const products = await prisma.product.findMany({
     where: {
-      defaultCategoryId: categoryId,
+      OR: [
+        { defaultCategoryId: categoryId },
+        { categories: { some: { categoryId: categoryId } } }
+      ],
       published: true,
+    },
+    include: {
+      categories: true,
     },
   });
 

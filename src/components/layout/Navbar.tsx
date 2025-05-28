@@ -79,8 +79,13 @@ export default function Navbar() {
               <Menu size={24} />
             </button> */}
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                QuickShop
+              <span className="text-2xl font-bold">
+                <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent">
+                  Meru
+                </span>
+                <span className="bg-gradient-to-r from-purple-600 via-indigo-500 to-blue-600 bg-clip-text text-transparent">
+                  go
+                </span>
               </span>
             </Link>
           </div>

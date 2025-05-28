@@ -6,7 +6,7 @@ import Link from 'next/link';
 export default function DemosPage() {
   return (
     <div className="max-w-[1440px] mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">QuickShop Demo Pages</h1>
+      <h1 className="text-3xl font-bold mb-8">Merugo Demo Pages</h1>
       
       <div className="grid md:grid-cols-2 gap-6">
         {/* Theme Demo Card */}
@@ -16,7 +16,7 @@ export default function DemosPage() {
         >
           <h2 className="text-xl font-semibold mb-4 text-indigo-600">Theme Demo</h2>
           <p className="text-gray-600 mb-4">
-            Explore the color palette, design elements, and components used in QuickShop.
+            Explore the color palette, design elements, and components used in Merugo.
             View primary, secondary, warning, error, and neutral colors with their various shades.
           </p>
           <div className="flex space-x-2">

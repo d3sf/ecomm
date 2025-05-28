@@ -124,7 +124,7 @@ const CategoryForm = ({
               label="Category Image"
               multiple={false}
               maxFiles={1}
-              folder="quickshop/categories"
+              folder="merugo/categories"
             />
           </div>
         </div>

@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const uploadFormData = new FormData();
     uploadFormData.append('file', file);
     uploadFormData.append('upload_preset', cloudinaryUploadPreset);
-    uploadFormData.append('folder', 'quickshop/categorygrid');
+    uploadFormData.append('folder', 'merugo/categorygrid');
 
     // Upload to Cloudinary
     const { data } = await axios.post(

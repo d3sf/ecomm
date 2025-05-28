@@ -3,38 +3,11 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
-import Image from "next/image";
 import { toast } from "react-hot-toast";
+import { ArrowLeft, Download } from "lucide-react";
+import Image from "next/image";
+import { Order } from "@/types/order";
 
-interface OrderItem {
-  id: number;
-  productId: number;
-  quantity: number;
-  price: number;
-  product: {
-    id: number;
-    name: string;
-    images: { url: string }[];
-  };
-}
-
-interface Order {
-  id: number;
-  totalAmount: number;
-  status: string;
-  createdAt: string;
-  orderItems: OrderItem[];
-  shippingAddress: {
-    fullName: string;
-    addressLine1: string;
-    addressLine2?: string;
-    city: string;
-    state: string;
-    postalCode: string;
-  };
-}
-
-// Next.js 15 params handling
 export default function OrderPage() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -69,6 +42,39 @@ export default function OrderPage() {
     fetchOrder();
   }, [orderId, session, router]);
 
+  const handleDownloadInvoice = async (orderId: number) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}/invoice`);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to download invoice');
+      }
+
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link element
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice-${orderId}.pdf`;
+      
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the URL
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to download invoice');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -88,91 +94,99 @@ export default function OrderPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          {/* Order Header */}
-          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Order #{order.id}
-              </h1>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => router.push("/account?tab=orders")}
+              className="flex items-center text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Orders
+            </button>
+            <button
+              onClick={() => handleDownloadInvoice(order.id)}
+              className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              Invoice
+            </button>
+          </div>
+
+          <div className="border border-gray-200 rounded-lg p-6">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-xl font-semibold">Order #{order.id}</h2>
+                <p className="text-sm text-gray-500">
+                  {new Date(order.createdAt).toLocaleDateString()}
+                </p>
+              </div>
               <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  order.status === "PENDING"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : order.status === "COMPLETED"
+                className={`px-2 py-1 rounded text-sm ${
+                  order.status === "DELIVERED"
                     ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
+                    : order.status === "CANCELLED"
+                    ? "bg-red-100 text-red-800"
+                    : "bg-yellow-100 text-yellow-800"
                 }`}
               >
                 {order.status}
               </span>
             </div>
-            <p className="mt-1 text-sm text-gray-500">
-              Ordered on {new Date(order.createdAt).toLocaleDateString()}
-            </p>
-          </div>
 
-          {/* Order Items */}
-          <div className="px-4 py-5 sm:p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
-              Order Items
-            </h2>
             <div className="space-y-6">
-              {order.orderItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center space-x-4 border-b border-gray-200 pb-4"
-                >
-                  <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                    <Image
-                      src={item.product.images[0]?.url || "/placeholder.png"}
-                      alt={item.product.name}
-                      width={80}
-                      height={80}
-                      className="h-full w-full object-cover object-center"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-medium text-gray-900">
-                      {item.product.name}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Quantity: {item.quantity}
-                    </p>
-                  </div>
-                  <p className="text-sm font-medium text-gray-900">
-                    ₹{item.price.toFixed(2)}
+              {/* Order Items */}
+              <div>
+                <h3 className="text-lg font-medium mb-4">Order Items</h3>
+                <div className="space-y-4">
+                  {order.orderItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center space-x-4"
+                    >
+                      <div className="w-16 h-16 relative">
+                        <Image
+                          src={item.product.images[0]?.url || "/placeholder.png"}
+                          alt={item.product.name}
+                          fill
+                          className="object-cover rounded"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{item.product.name}</p>
+                        <p className="text-sm text-gray-500">
+                          Qty: {item.quantity} × ₹{item.price}
+                        </p>
+                      </div>
+                      <p className="font-medium">
+                        ₹{(item.quantity * item.price).toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Shipping Address */}
+              <div>
+                <h3 className="text-lg font-medium mb-2">Shipping Address</h3>
+                <div className="bg-gray-50 p-4 rounded-md">
+                  <p className="font-medium">{order.shippingAddress.fullName}</p>
+                  <p className="text-gray-600">
+                    {order.shippingAddress.addressLine1}
+                    {order.shippingAddress.addressLine2 && `, ${order.shippingAddress.addressLine2}`}
+                  </p>
+                  <p className="text-gray-600">
+                    {order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.postalCode}
                   </p>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Shipping Address */}
-          <div className="px-4 py-5 sm:p-6 border-t border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
-              Shipping Address
-            </h2>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-900">{order.shippingAddress.fullName}</p>
-              <p className="text-sm text-gray-500">{order.shippingAddress.addressLine1}</p>
-              {order.shippingAddress.addressLine2 && (
-                <p className="text-sm text-gray-500">{order.shippingAddress.addressLine2}</p>
-              )}
-              <p className="text-sm text-gray-500">
-                {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
-                {order.shippingAddress.postalCode}
-              </p>
-            </div>
-          </div>
-
-          {/* Order Summary */}
-          <div className="px-4 py-5 sm:p-6 border-t border-gray-200">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-medium text-gray-900">Order Total</h2>
-              <p className="text-2xl font-semibold text-gray-900">
-                ₹{order.totalAmount.toFixed(2)}
-              </p>
+              {/* Order Summary */}
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-medium">Total Amount</span>
+                  <span className="text-xl font-semibold">₹{order.totalAmount.toFixed(2)}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

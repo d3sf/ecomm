@@ -47,11 +47,11 @@ export async function POST(req: Request) {
 
     // Send verification email
     await resend.emails.send({
-      from: 'QuickShop <onboarding@resend.dev>',
+      from: 'Merugo <onboarding@resend.dev>',
       to: email,
       subject: 'Verify your email',
       html: `
-        <h1>Welcome to QuickShop!</h1>
+        <h1>Welcome to Merugo!</h1>
         <p>Please click the link below to verify your email:</p>
         <a href="${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}">
           Verify Email

@@ -77,7 +77,7 @@ export async function GET(
     doc.rect(0, 0, pageWidth, 30, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
-    doc.text("QuickShop", pageWidth / 2, 20, { align: "center" });
+    doc.text("Merugo", pageWidth / 2, 20, { align: "center" });
     
     // Reset text color
     doc.setTextColor(0, 0, 0);
@@ -280,7 +280,7 @@ export async function GET(
     doc.setTextColor(100, 100, 100);
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    doc.text("Thank you for shopping with QuickShop!", pageWidth / 2, yPos, { align: "center" });
+    doc.text("Thank you for shopping with Merugo!", pageWidth / 2, yPos, { align: "center" });
     yPos += 5;
     doc.text(`Generated on ${new Date().toLocaleString()}`, pageWidth / 2, yPos, { align: "center" });
     

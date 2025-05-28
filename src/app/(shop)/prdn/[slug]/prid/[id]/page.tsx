@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getProducts } from "@/lib/fetchproducts";
+import { prisma } from "@/lib/prisma";
 import ProductDetails from "@/components/product/ProductDetails";
 
 interface PageProps {
@@ -19,14 +19,33 @@ export default async function ProductPage({ params }: PageProps) {
   }
 
   try {
-    const products = await getProducts();
-    const product = products.find(p => p.id === productId);
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        categories: true,
+        defaultCategory: true,
+      },
+    });
     
     if (!product) {
       return notFound();
     }
 
-    return <ProductDetails product={product} />;
+    // Transform the data to match expected types
+    const transformedProduct = {
+      ...product,
+      images: product.images ? JSON.parse(JSON.stringify(product.images)) : [],
+      categories: product.categories.map(cat => ({
+        ...cat,
+        image: cat.image ? JSON.parse(JSON.stringify(cat.image)) : undefined,
+      })),
+      defaultCategory: product.defaultCategory ? {
+        ...product.defaultCategory,
+        image: product.defaultCategory.image ? JSON.parse(JSON.stringify(product.defaultCategory.image)) : undefined,
+      } : null,
+    };
+
+    return <ProductDetails product={transformedProduct} />;
   } catch (error) {
     console.error("Error loading product:", error);
     return notFound();

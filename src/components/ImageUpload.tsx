@@ -104,7 +104,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   label = 'Upload Images',
   multiple = true,
   maxFiles = 5,
-  folder = 'quickshop',
+  folder = 'merugo',
   onDefaultImageChange,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);

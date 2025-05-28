@@ -47,12 +47,12 @@ export async function POST(req: Request) {
     const acceptUrl = `${process.env.NEXT_PUBLIC_APP_URL}/admin/accept-invite?token=${token}`;
     
     await resend.emails.send({
-      from: "QuickShop <onboarding@resend.dev>",
+      from: "Merugo <onboarding@resend.dev>",
       to: email,
-      subject: "You are invited to QuickShop Admin!",
+      subject: "You are invited to Merugo Admin!",
       html: `
-        <h1>Welcome to QuickShop Admin!</h1>
-        <p>You have been invited to join QuickShop as an admin with the role of ${role}.</p>
+        <h1>Welcome to Merugo Admin!</h1>
+        <p>You have been invited to join Merugo as an admin with the role of ${role}.</p>
         <p>Click the link below to accept the invitation:</p>
         <a href="${acceptUrl}">Accept Invitation</a>
         <p>This link will expire in 24 hours.</p>

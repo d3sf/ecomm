@@ -11,7 +11,7 @@ export default function Footer() {
           {/* Company Info */}
           <div className="space-y-4">
             <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              QuickShop
+              Merugo
             </h3>
             <p className="text-gray-600">
               Your one-stop shop for all your needs. Quality products, fast delivery, and excellent customer service.
@@ -97,7 +97,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center space-x-2">
                 <Mail size={18} className="text-gray-400" />
-                <span className="text-gray-600">support@quickshop.com</span>
+                <span className="text-gray-600">support@merugo.com</span>
               </li>
             </ul>
           </div>
@@ -107,7 +107,7 @@ export default function Footer() {
         <div className="border-t border-gray-100 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-500 text-sm">
-              © {new Date().getFullYear()} QuickShop. All rights reserved.
+              © {new Date().getFullYear()} Merugo. All rights reserved.
             </p>
             <div className="flex space-x-4 mt-4 md:mt-0">
               <Link href="/privacy" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">

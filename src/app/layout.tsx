@@ -9,7 +9,7 @@ import SessionProviderWrapper from "@/components/providers/SessionProviderWrappe
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "QuickShop",
+  title: "Merugo",
   description: "Your one-stop shop for all your needs",
 };
 
