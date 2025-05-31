@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { ProductType } from "@/lib/zodvalidation";
 import AddToCartButton from "./AddToCartButton";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { formatCurrency } from "@/utils/currency";
+import { theme, withOpacity } from "@/lib/theme";
 
 interface CartModalProps {
   isOpen: boolean;
@@ -20,44 +22,46 @@ interface CartItemWithDetails extends Omit<ProductType, 'quantity'> {
 }
 
 export default function CartModal({ isOpen, onClose }: CartModalProps) {
-  const { items, addToCart } = useCart();
+  const { items = [], addItem } = useCart();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [cartItems, setCartItems] = useState<CartItemWithDetails[]>([]);
-  const [subtotal, setSubtotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const previousItemsRef = useRef<typeof items>([]);
+  const cartDataFetchedRef = useRef(false);
+  
+  // Calculate subtotal using useMemo instead of useState + useEffect
+  const subtotal = useMemo(() => {
+    const visibleItems = cartItems.filter(item => item.cartQuantity > 0);
+    
+    if (visibleItems.length === 0) {
+      return 0;
+    }
+
+    return visibleItems.reduce((total, item) => {
+      const price = typeof item.price === 'string'
+        ? parseFloat(item.price)
+        : item.price;
+      return total + (price * item.cartQuantity);
+    }, 0);
+  }, [cartItems]);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Update subtotal whenever cart items change
-  useEffect(() => {
-    const visibleItems = cartItems.filter(item => item.cartQuantity > 0);
-
-    if (visibleItems.length === 0) {
-      setSubtotal(0);
-      return;
-    }
-
-    let total = 0;
-    for (const item of visibleItems) {
-      const price = typeof item.price === 'string'
-        ? parseFloat(item.price)
-        : item.price;
-      total += price * item.cartQuantity;
-    }
-    setSubtotal(total);
-  }, [cartItems]);
-
   const fetchCartItems = useCallback(async () => {
-    if (items.length === 0) {
+    if (!items || items.length === 0) {
       setCartItems([]);
+      setIsLoading(false);
       return;
     }
     
     try {
+      setIsLoading(true);
+      
       // Extract product IDs from cart items
-      const productIds = items.map(item => item.productId);
+      const productIds = items.map(item => item.id);
       
       // Use the dedicated cart-products API to fetch only the products in the cart
       const response = await fetch('/api/cart-products', {
@@ -66,6 +70,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ productIds }),
+        cache: 'no-store', // Prevent caching
       });
       
       if (!response.ok) {
@@ -82,7 +87,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
 
       const itemsWithDetails = items.map(item => {
         const product = products.find((p: ProductType) =>
-          String(p.id) === String(item.productId)
+          String(p.id) === String(item.id)
         );
 
         if (product) {
@@ -90,33 +95,102 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
           return {
             ...productWithoutQuantity,
             cartQuantity: item.quantity,
-            originalProductId: item.productId
+            originalProductId: item.id
           };
         }
         return null;
       }).filter(Boolean) as CartItemWithDetails[];
 
       setCartItems(itemsWithDetails);
+      cartDataFetchedRef.current = true;
     } catch (error) {
       console.error('Error fetching cart items:', error);
       toast.error('Failed to load cart items');
+    } finally {
+      setIsLoading(false);
     }
   }, [items]);
 
+  const updateCartItems = useCallback(() => {
+    if (cartItems.length > 0) {
+      const updatedItems = cartItems.map(cartItem => {
+        const matchingItem = items.find(item => 
+          String(item.id) === String(cartItem.originalProductId)
+        );
+        
+        if (matchingItem) {
+          return {
+            ...cartItem,
+            cartQuantity: matchingItem.quantity
+          };
+        } 
+        return cartItem;
+      });
+      
+      setCartItems(updatedItems);
+    }
+    
+    const itemsChanged = JSON.stringify(items) !== JSON.stringify(previousItemsRef.current);
+    if (itemsChanged) {
+      previousItemsRef.current = [...items];
+      
+      if (isOpen) {
+        fetchCartItems();
+      } else if (!cartDataFetchedRef.current && items.length > 0) {
+        fetchCartItems();
+      }
+    }
+  }, [cartItems, items, isOpen, fetchCartItems]);
+
   useEffect(() => {
-    fetchCartItems();
-  }, [fetchCartItems]);
+    updateCartItems();
+  }, [updateCartItems]);
+
+  // When modal opens, make sure we have the latest data
+  useEffect(() => {
+    if (isOpen) {
+      fetchCartItems();
+    }
+  }, [isOpen, fetchCartItems]);
 
   const handleProceedToCheckout = useCallback(() => {
-    if (items.length === 0) {
+    if (!items || items.length === 0) {
+      // Show toast message when user explicitly tries to proceed with empty cart
       toast.error('Your cart is empty');
       return;
     }
     onClose();
     router.push('/checkout');
-  }, [items.length, onClose, router]);
+  }, [items, onClose, router]);
 
   if (!isMounted) return null;
+
+  // Handle direct update when adding to cart
+  const handleDirectCartUpdate = (productId: string | number, quantity: number, item: CartItemWithDetails) => {
+    if (item && typeof item === 'object') {
+      // First update the local cartItems for immediate UI update
+      setCartItems(prevItems => 
+        prevItems.map(cartItem => {
+          if (String(cartItem.originalProductId) === String(productId)) {
+            return {
+              ...cartItem,
+              cartQuantity: quantity
+            };
+          }
+          return cartItem;
+        })
+      );
+      
+      // Then update the Redux store
+      addItem({
+        id: String(productId),
+        name: item.name,
+        price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
+        quantity: quantity,
+        image: item.images?.[0]?.url || "/placeholder.png"
+      });
+    }
+  };
 
   return (
     <div
@@ -134,14 +208,18 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
         className={`fixed inset-y-0 right-0 flex max-w-full pl-10 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"}`}
         style={{ height: '100vh' }}
       >
-        <div className="w-screen max-w-md" style={{ height: '100vh' }}>
+        <div className="w-screen max-w-lg" style={{ height: '100vh' }}>
           <div className="flex flex-col bg-white shadow-xl" style={{ height: '100vh' }}>
             {/* Header - Fixed height */}
-            <div className="flex-shrink-0 flex items-center justify-between px-4 py-6 border-b bg-white">
-              <h2 className="text-lg font-medium text-gray-900">Shopping Cart</h2>
+            <div 
+              className="flex-shrink-0 flex items-center justify-between px-6 py-6 border-b bg-white"
+              style={{ borderColor: withOpacity(theme.primary, 0.1) }}
+            >
+              <h2 className="text-xl font-medium" style={{ color: theme.dark }}>Shopping Cart</h2>
               <button
                 type="button"
-                className="text-gray-400 hover:text-gray-500"
+                className="hover:text-gray-500 transition-colors"
+                style={{ color: theme.gray }}
                 onClick={onClose}
               >
                 <X className="h-6 w-6" />
@@ -149,15 +227,33 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
             </div>
 
             {/* Cart Items - Flexible height with scrolling */}
-            <div className="flex-grow overflow-y-auto px-4 py-6">
-              {items.length === 0 ? (
-                <p className="text-center text-gray-500">Your cart is empty</p>
+            <div className="flex-grow overflow-y-auto px-6 py-6">
+              {isLoading && cartItems.length === 0 ? (
+                <div className="flex justify-center items-center h-32">
+                  <Loader2 className="h-6 w-6 animate-spin" style={{ color: theme.primary }} />
+                </div>
+              ) : !items || items.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-64 text-center">
+                  <div 
+                    className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                    style={{ backgroundColor: withOpacity(theme.primary, 0.1) }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: theme.primary }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                  </div>
+                  <p className="text-lg mb-2" style={{ color: theme.gray }}>Your cart is empty</p>
+                  <p className="text-sm" style={{ color: theme.gray }}>Add some items to get started.</p>
+                </div>
               ) : (
-                <ul className="divide-y divide-gray-200">
+                <ul className="divide-y" style={{ borderColor: withOpacity(theme.primary, 0.1) }}>
                   {cartItems.filter(item => item.cartQuantity > 0).map((item) => (
-                    <li key={`cart-item-${item.id}`} className="flex py-6">
+                    <li key={`cart-item-${item.id}-${item.cartQuantity}`} className="flex py-6">
                       {/* Product Image */}
-                      <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                      <div 
+                        className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border"
+                        style={{ borderColor: withOpacity(theme.primary, 0.1) }}
+                      >
                         <Image
                           src={item.images?.[0]?.url || "/placeholder.png"}
                           alt={item.name}
@@ -170,23 +266,31 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                       {/* Product Details */}
                       <div className="ml-4 flex flex-1 flex-col">
                         <div>
-                          <div className="flex justify-between text-base font-medium text-gray-900">
+                          <div className="flex justify-between text-base font-medium" style={{ color: theme.dark }}>
                             <h3>{item.name}</h3>
-                            {/* Quantity Controls */}
-                            <div className="mt-2">
-                              <AddToCartButton
-                                key={`button-${item.id}-${item.cartQuantity}`}
-                                productId={item.originalProductId}
-                                onAddToCart={addToCart}
-                                initialQuantity={item.cartQuantity}
-                              />
-                            </div>
-                            <p className="ml-4">
-                              ₹{typeof item.price === 'string'
-                                ? parseFloat(item.price).toFixed(2)
-                                : item.price}
-                            </p>
+                            <p className="ml-4">{formatCurrency(item.price)}</p>
                           </div>
+                          <p className="mt-1 text-sm" style={{ color: theme.gray }}>{item.description}</p>
+                        </div>
+                        <div className="flex flex-1 items-end justify-between text-sm">
+                          <div className="flex items-center">
+                            <AddToCartButton
+                              productId={String(item.id)}
+                              initialQuantity={item.cartQuantity}
+                              onAddToCart={(productId, quantity) => handleDirectCartUpdate(productId, quantity, item)}
+                              textColor="text-green-600"
+                              borderColor="border-green-600"
+                              backgroundColor="bg-green-50"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            className="font-medium hover:opacity-75 transition-opacity"
+                            style={{ color: theme.primary }}
+                            onClick={() => handleDirectCartUpdate(String(item.id), 0, item)}
+                          >
+                            Remove
+                          </button>
                         </div>
                       </div>
                     </li>
@@ -196,21 +300,41 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
             </div>
 
             {/* Footer - Fixed height */}
-            <div className="flex-shrink-0 border-t border-gray-200 px-4 py-6 bg-white">
-              <div className="flex justify-between text-base font-medium text-gray-900">
+            <div 
+              className="flex-shrink-0 border-t px-6 py-6"
+              style={{ borderColor: withOpacity(theme.primary, 0.1) }}
+            >
+              <div className="flex justify-between text-base font-medium mb-4" style={{ color: theme.dark }}>
                 <p>Subtotal</p>
-                <p>
-                  ₹{subtotal.toFixed(2)}
-                </p>
+                <p>{formatCurrency(subtotal)}</p>
               </div>
+              <p className="mt-0.5 text-sm" style={{ color: theme.gray }}>
+                Shipping and taxes calculated at checkout.
+              </p>
               <div className="mt-6">
                 <button
-                  className="w-full rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleProceedToCheckout}
-                  disabled={items.length === 0}
+                  className="w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white transition-all duration-200 hover:shadow-md"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
+                    backgroundSize: '200% 200%',
+                    animation: 'gradient-x 15s ease infinite'
+                  }}
                 >
-                  Proceed to Checkout
+                  Checkout
                 </button>
+              </div>
+              <div className="mt-6 flex justify-center text-center text-sm">
+                <p>
+                  <button
+                    type="button"
+                    className="font-medium hover:opacity-75 transition-opacity"
+                    style={{ color: theme.primary }}
+                    onClick={onClose}
+                  >
+                    Continue Shopping
+                  </button>
+                </p>
               </div>
             </div>
           </div>

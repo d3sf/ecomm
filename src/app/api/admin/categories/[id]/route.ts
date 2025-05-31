@@ -1,11 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
-import {  CategoryUpdateSchema } from '@/lib/zodvalidation';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { CategoryUpdateSchema } from '@/lib/zodvalidation';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -42,14 +42,14 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: idStr } = await params;
-    const id = parseInt(idStr);
+    const { id } = await params;
+    const categoryId = parseInt(id);
     
     // Validate ID
-    if (isNaN(id) || id <= 0) {
+    if (isNaN(categoryId) || categoryId <= 0) {
       return NextResponse.json(
         { error: 'Invalid category ID' },
         { status: 400 }
@@ -61,7 +61,7 @@ export async function PUT(
 
     // Check if category exists
     const existingCategory = await prisma.category.findUnique({
-      where: { id }
+      where: { id: categoryId }
     });
 
     if (!existingCategory) {
@@ -78,7 +78,7 @@ export async function PUT(
       console.log("Processing partial update (published only)");
       try {
         const category = await prisma.category.update({
-          where: { id },
+          where: { id: categoryId },
           data: { published: data.published }
         });
         
@@ -125,7 +125,7 @@ export async function PUT(
 
       if (potentialParent) {
         // Check if the category is trying to be its own parent
-        if (potentialParent.id === id) {
+        if (potentialParent.id === categoryId) {
           return NextResponse.json(
             { error: 'A category cannot be its own parent' },
             { status: 400 }
@@ -133,7 +133,7 @@ export async function PUT(
         }
 
         // Check if the category is trying to be a parent of its parent
-        const isCircular = potentialParent.children?.some(child => child.id === id);
+        const isCircular = potentialParent.children?.some((child: { id: number }) => child.id === categoryId);
         if (isCircular) {
           return NextResponse.json(
             { error: 'Circular reference detected in category hierarchy' },
@@ -147,7 +147,7 @@ export async function PUT(
     
     try {
       const category = await prisma.category.update({
-        where: { id },
+        where: { id: categoryId },
         data: {
           name: data.name ?? existingCategory.name,
           slug: data.slug ?? existingCategory.slug,
@@ -161,9 +161,9 @@ export async function PUT(
       console.log('Updated category:', category);
       
       return NextResponse.json(category);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Prisma error updating category:', err);
-      if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err instanceof PrismaClientKnownRequestError) {
         // Handle known Prisma errors
         if (err.code === 'P2002') {
           return NextResponse.json(
@@ -185,15 +185,15 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: idStr } = await params;
-    const id = parseInt(idStr);
+    const { id } = await params;
+    const categoryId = parseInt(id);
 
     // Check if category has children
     const category = await prisma.category.findUnique({
-      where: { id },
+      where: { id: categoryId },
       include: { children: true }
     });
 
@@ -212,7 +212,7 @@ export async function DELETE(
     }
 
     await prisma.category.delete({
-      where: { id }
+      where: { id: categoryId }
     });
 
     return NextResponse.json({ success: true });

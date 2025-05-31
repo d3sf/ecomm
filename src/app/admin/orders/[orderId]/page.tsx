@@ -106,8 +106,30 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ orderId
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Print styles */}
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          .invoice-content,
+          .invoice-content * {
+            visibility: visible;
+          }
+          .invoice-content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
+
       {/* Header with actions */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8 no-print">
         <button
           onClick={() => router.push("/admin/orders")}
           className="flex items-center text-gray-600 hover:text-indigo-600 transition-colors"
@@ -134,7 +156,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ orderId
       </div>
 
       {/* Invoice Content */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 invoice-content">
         {/* Invoice Header */}
         <div className="flex justify-between items-start mb-8">
           <div>

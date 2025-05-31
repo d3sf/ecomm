@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2, FilePenLine } from 'lucide-react';
+import { Trash2, Edit2 } from 'lucide-react';
 
 interface ActionIconsProps {
   onEdit: (e: React.MouseEvent) => void;
@@ -11,17 +11,17 @@ const ActionIcons: React.FC<ActionIconsProps> = ({ onEdit, onDelete }) => {
     <div className="flex items-center space-x-2">
       <button
         onClick={onEdit}
-        className="text-indigo-600 hover:text-indigo-900"
+        className="text-gray-600 hover:text-indigo-600 transition-colors"
         title="Edit"
       >
-        <FilePenLine size={18} />
+        <Edit2 className="h-4 w-4" />
       </button>
       <button
         onClick={onDelete}
-        className="text-red-600 hover:text-red-900"
+        className="text-gray-600 hover:text-red-600 transition-colors"
         title="Delete"
       >
-        <Trash2 size={18} />
+        <Trash2 className="h-4 w-4" />
       </button>
     </div>
   );

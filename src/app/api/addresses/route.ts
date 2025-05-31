@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
-import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/route";
+import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/auth";
 import { Session } from "next-auth";
 
 // Helper function to find user from session

@@ -1,7 +1,22 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { adminAuthOptions } from "@/app/api/admin-auth/[...nextauth]/route";
+import { adminAuthOptions } from "@/app/api/admin-auth/[...nextauth]/auth";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
+
+interface BestSellingProduct {
+  productId: number;
+  _sum: {
+    quantity: number | null;
+  };
+}
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  images: Prisma.JsonValue;
+}
 
 export async function GET() {
   try {
@@ -45,7 +60,7 @@ export async function GET() {
     });
 
     // Get product details for the best-selling products
-    const productIds = bestSellingProducts.map(item => item.productId);
+    const productIds = bestSellingProducts.map((item: BestSellingProduct) => item.productId);
     const products = await prisma.product.findMany({
       where: {
         id: {
@@ -61,8 +76,8 @@ export async function GET() {
     });
 
     // Combine product details with sales data
-    const bestSellers = bestSellingProducts.map(item => {
-      const product = products.find(p => p.id === item.productId);
+    const bestSellers = bestSellingProducts.map((item: BestSellingProduct) => {
+      const product = products.find((p: Product) => p.id === item.productId);
       return {
         id: item.productId,
         name: product?.name || 'Unknown Product',

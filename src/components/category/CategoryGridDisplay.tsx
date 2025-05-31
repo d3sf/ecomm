@@ -53,7 +53,7 @@ export default function CategoryGridDisplay() {
   return (
     <div className="mb-12">
       {/* <h2 className="text-2xl font-bold mb-6">Shop by Category</h2> */}
-      <div className="grid grid-cols-10 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-10 gap-2">
         {visibleGrids.map((grid) => (
           <Link
             key={grid.id}
@@ -66,7 +66,7 @@ export default function CategoryGridDisplay() {
                 alt={grid.category?.name || 'Category'}
                 width={200}
                 height={200}
-                className="object-contain transition-transform "
+                className="object-contain transition-transform"
               />
             </div>
           </Link>

@@ -170,7 +170,7 @@ const AddressSelection: React.FC<AddressSelectionProps> = ({
           <h4 className="text-lg font-medium mb-4">Add New Address</h4>
           <AddressForm
             onCancel={() => setIsAddingAddress(false)}
-            onSubmit={handleAddAddress}
+            onSave={handleAddAddress}
           />
         </div>
       ) : addresses.length === 0 ? (

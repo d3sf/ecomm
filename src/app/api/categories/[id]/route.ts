@@ -4,7 +4,7 @@ import { CategorySchema } from "@/lib/zodvalidation";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
   const categoryId = parseInt(id);
@@ -34,7 +34,7 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
   const categoryId = parseInt(id);
@@ -95,14 +95,15 @@ export async function PUT(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = parseInt(params.id);
-  const body = await req.json();
-
+  const { id } = await params;
+  const categoryId = parseInt(id);
+  
   try {
+    const body = await req.json();
     const category = await prisma.category.update({
-      where: { id },
+      where: { id: categoryId },
       data: {
         published: body.published,
       },
@@ -116,7 +117,7 @@ export async function PATCH(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
   const categoryId = parseInt(id);

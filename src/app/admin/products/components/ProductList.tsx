@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
-import { Search } from "lucide-react";
 import { ProductType, CategoryType } from "@/lib/zodvalidation";
 import { toast } from "react-hot-toast";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
@@ -21,11 +20,10 @@ interface ProductListProps {
   totalItems: number;
   itemsPerPage: number;
   onPageChange: (page: number) => void;
-  onSearch: (term: string) => void;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ 
-  products, 
+const ProductList: React.FC<ProductListProps> = ({
+  products,
   onDelete,
   onEdit,
   onTogglePublish,
@@ -35,20 +33,8 @@ const ProductList: React.FC<ProductListProps> = ({
   totalItems,
   itemsPerPage,
   onPageChange,
-  onSearch
 }) => {
-  
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
-
-  // Debounce search term to prevent too many API calls
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      onSearch(searchTerm);
-    }, 500);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, onSearch]);
 
   const handleDelete = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
@@ -74,7 +60,6 @@ const ProductList: React.FC<ProductListProps> = ({
         ? prev.filter(id => id !== productId)
         : [...prev, productId];
       
-      // Notify parent component of selection change
       onSelectionChange(newSelection);
       return newSelection;
     });
@@ -86,23 +71,6 @@ const ProductList: React.FC<ProductListProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow">
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          
-          {/* Delete Selected button removed since it's already in the parent */}
-        </div>
-      </div>
-
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead className="text-xs font-semibold tracking-wide text-gray-500 uppercase bg-gray-100">
@@ -150,14 +118,11 @@ const ProductList: React.FC<ProductListProps> = ({
                       <span className="font-medium">{product.name}</span>
                     </div>
                   </td>
-                  
                   <td className="px-4 py-2">
-                    
                     {product.defaultCategory ? (
                       <span className="px-2 py-1 bg-gray-100 rounded-full text-sm">
                         {product.defaultCategory.name}
                       </span>
-                      
                     ) : (
                       <span className="px-2 py-1 bg-gray-100 rounded-full text-sm">
                         Uncategorized
@@ -169,7 +134,7 @@ const ProductList: React.FC<ProductListProps> = ({
                     <span className={`px-2 py-1 rounded-full text-sm ${
                       isOutOfStock ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
                     }`}>
-                      {isOutOfStock ? "Out of Stock" : product.stock}
+                      {product.stock}
                     </span>
                   </td>
                   <td className="px-4 py-2">
@@ -206,10 +171,7 @@ const ProductList: React.FC<ProductListProps> = ({
           totalPages={totalPages}
           totalItems={totalItems}
           itemsPerPage={itemsPerPage}
-          onPageChange={(page) => {
-            console.log("ProductList passing page change:", page);
-            onPageChange(page);
-          }}
+          onPageChange={onPageChange}
         />
       </div>
     </div>

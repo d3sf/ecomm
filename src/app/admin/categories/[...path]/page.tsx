@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios, { AxiosError } from "axios";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -12,6 +12,7 @@ import { toast } from "react-hot-toast";
 import { CategoryType } from '@/lib/zodvalidation';
 import { Plus, ListTree, Trash2 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 const CategoriesPage = () => {
   const params = useParams();
@@ -60,7 +61,7 @@ const CategoriesPage = () => {
     setBreadcrumbNames(names);
   }, [currentPath, allCategories]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await axios.get("/api/admin/categories");
       if (!response.data) {
@@ -86,15 +87,11 @@ const CategoriesPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-
-  // ✅ Option 1: Wrap fetchCategories in useCallback
-  // ✅ Option 2: Define the function inside useEffect
+  }, [currentParentId, itemsPerPage]);
 
   useEffect(() => {
     fetchCategories();
-  }, [currentParentId]);
+  }, [fetchCategories]);
 
   const handlePathChange = (newPath: number[]) => {
     setCurrentPath(newPath);
@@ -225,7 +222,11 @@ const CategoriesPage = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <LoadingSpinner size="lg" color="primary" />
+      </div>
+    );
   }
 
   return (
@@ -276,6 +277,7 @@ const CategoriesPage = () => {
         currentPath={currentPath}
         onPathChange={handlePathChange}
         breadcrumbNames={breadcrumbNames}
+        onSearch={() => {}}
       />
 
       {/* Category Tree Sliding Panel */}

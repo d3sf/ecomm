@@ -43,8 +43,9 @@ const ProductCard: React.FC<ProductCardProps> = (props) => {
   const slug = product?.slug || id;
   const defaultImagePublicId = product?.defaultImagePublicId || individualProps.defaultImagePublicId;
 
-  const { addToCart, getItemQuantity } = useCart();
-  const currentQuantity = id ? getItemQuantity(id) : 0;
+  const { addItem, getItemQuantity } = useCart();
+  // Add a safety check when calling getItemQuantity
+  const currentQuantity = id && typeof getItemQuantity === 'function' ? getItemQuantity(id) : 0;
 
   // Default to placeholder image
   let imageUrl = "/placeholder.png";
@@ -108,10 +109,24 @@ const ProductCard: React.FC<ProductCardProps> = (props) => {
 
   // Format price and quantity
   const formattedPrice = typeof price === 'string' ? parseFloat(price) : price;
-  // const formattedQuantity = typeof quantity === 'string' ? parseInt(quantity, 10) : quantity;
 
   const handleAddToCart = (productId: string | number, quantity: number) => {
-    addToCart(productId, quantity);
+    try {
+      if (typeof addItem === 'function') {
+        const item = {
+          id: String(productId),
+          name: name,
+          price: formattedPrice,
+          quantity: quantity,
+          image: imageUrl
+        };
+        
+        // Add item directly to Redux store
+        addItem(item);
+      }
+    } catch (error) {
+      console.error("Error adding item to cart:", error);
+    }
   };
 
   if (!id) {
@@ -121,13 +136,14 @@ const ProductCard: React.FC<ProductCardProps> = (props) => {
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow w-48">
       {/* Image Section */}
-      <div className="relative h-[140px] w-[140px] mx-auto mt-4">
+      <div className="relative h-[140px] w-[140px] mx-auto mt-4 bg-gray-50">
         <Link href={`/prdn/${slug}/prid/${id}`}>
           <Image
             src={imageUrl}
             alt={name}
             fill
-            className="object-cover"
+            className="object-contain p-2"
+            sizes="(max-width: 140px) 100vw, 140px"
           />
         </Link>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import axios, { AxiosError } from "axios";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -65,7 +65,7 @@ const CategoriesPage = () => {
     setBreadcrumbNames(names);
   }, [currentPath, allCategories]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       let url = "/api/admin/categories";
       const params = new URLSearchParams();
@@ -107,11 +107,11 @@ const CategoriesPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentParentId, currentPage, searchTerm]);
 
   useEffect(() => {
     fetchCategories();
-  }, [currentParentId, currentPage, searchTerm]);
+  }, [fetchCategories]);
 
   const handlePathChange = (newPath: number[]) => {
     setCurrentPath(newPath);

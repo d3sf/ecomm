@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { adminAuthOptions } from "@/app/api/admin-auth/[...nextauth]/route";
+import { adminAuthOptions } from "@/app/api/admin-auth/[...nextauth]/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -17,7 +17,6 @@ export async function GET() {
         name: true,
         email: true,
         role: true,
-        status: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -38,7 +37,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, email, role, status, password } = body;
+    const { name, email, role, password } = body;
 
     // Check if email already exists
     const existingStaff = await prisma.staff.findUnique({
@@ -57,8 +56,8 @@ export async function POST(request: Request) {
         name,
         email,
         role,
-        status,
-        password: hashedPassword,
+        passwordHash: hashedPassword,
+        username: email,
       },
     });
 
@@ -77,7 +76,7 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { id, name, email, role, status } = body;
+    const { id, name, email, role } = body;
 
     const staff = await prisma.staff.update({
       where: { id },
@@ -85,7 +84,6 @@ export async function PUT(request: Request) {
         name,
         email,
         role,
-        status,
       },
     });
 

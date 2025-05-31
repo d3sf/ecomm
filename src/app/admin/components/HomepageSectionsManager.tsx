@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Category } from '@prisma/client';
+import type { Category } from '@prisma/client';
 import { HomepageSectionsSkeleton } from '@/components/admin/skeletons';
 
 interface HomepageSection {
@@ -91,7 +91,7 @@ export default function HomepageSectionsManager() {
     const section = sections.find(s => s.id === id);
     if (!section) return;
 
-    const currentIndex = sections.findIndex(s => s.id === id);
+    const currentIndex = sections.findIndex((s: HomepageSection) => s.id === id);
     const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
 
     if (newIndex < 0 || newIndex >= sections.length) return;
@@ -128,9 +128,9 @@ export default function HomepageSectionsManager() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Manage Homepage Sections</h1>
-      
-      {/* Add New Section Form */}
+      {/* <h1 className="text-2xl font-bold mb-6">Manage Homepage Sections</h1> */}
+      <h1 className="text-2xl font-bold mb-6">Product Sections</h1>
+      {/* Add New Section Form */}  
       <form onSubmit={handleAddSection} className="mb-8">
         <div className="flex gap-4">
           <select

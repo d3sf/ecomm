@@ -20,12 +20,6 @@ export default function PaymentMethodSelection({
       description: "Pay when you receive your order",
       icon: Banknote,
     },
-    {
-      id: "RAZORPAY",
-      name: "Credit/Debit Card",
-      description: "Pay securely with your card",
-      icon: CreditCard,
-    },
   ];
 
   return (

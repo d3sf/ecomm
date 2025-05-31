@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useCart } from "@/contexts/CartContext";
@@ -9,7 +9,7 @@ import AddressSelection from "@/components/checkout/AddressSelection";
 import PaymentMethodSelection from "@/components/checkout/PaymentMethodSelection";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import CheckoutSteps from "@/components/checkout/CheckoutSteps";
-import RazorpayPayment from "@/components/checkout/RazorpayPayment";
+// import RazorpayPayment from "@/components/checkout/RazorpayPayment";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 const steps = ["Address", "Payment", "Review"];
@@ -23,16 +23,21 @@ interface CartItem {
   originalProductId: string | number;
 }
 
-interface PaymentVerificationData {
-  success: boolean;
-  message: string;
-  order: Record<string, unknown>;
-}
+// Remove or comment out PaymentVerificationData interface since it's not needed
+// interface PaymentVerificationData {
+//   success: boolean;
+//   message: string;
+//   order: {
+//     razorpay_payment_id: string;
+//     razorpay_order_id: string;
+//     razorpay_signature: string;
+//   };
+// }
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const { items, clearCart } = useCart();
+  const { items, clearCartItems: clearCart } = useCart();
   const [isLoading, setIsLoading] = useState(true);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -50,93 +55,18 @@ export default function CheckoutPage() {
     }
   }, [status, router]);
 
-  // Fetch cart items
-  useEffect(() => {
-    // Skip the empty cart check if an order was just completed
-    if (items.length === 0 && !isOrderComplete) {
-      router.push("/");
-      toast.error("Your cart is empty");
-      return;
-    }
-    
-    // Skip API calls if an order was just completed
-    if (isOrderComplete) {
-      return;
-    }
-    
-    const fetchCartItems = async () => {
-      try {
-        // Extract product IDs from cart items
-        const productIds = items.map(item => item.productId);
-        
-        // Use the dedicated cart-products API to fetch only the products in the cart
-        const response = await fetch('/api/cart-products', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ productIds }),
-        });
-        
-        if (!response.ok) {
-          // Only show error if not during order completion
-          if (!isOrderComplete) {
-            throw new Error('Failed to fetch products');
-          }
-          return;
-        }
-        
-        const { products } = await response.json();
-        
-        if (!products || !Array.isArray(products)) {
-          console.error('Invalid products data returned from API');
-          toast.error('Failed to load cart items');
-          return;
-        }
-
-        const itemsWithDetails = items.map(item => {
-          const product = products.find((p: { id: number | string }) => String(p.id) === String(item.productId));
-          if (product) {
-            return {
-              ...product,
-              cartQuantity: item.quantity,
-              originalProductId: item.productId
-            };
-          }
-          return null;
-        }).filter(Boolean) as CartItem[];
-
-        if (itemsWithDetails.length === 0) {
-          toast.error('Could not find products in your cart. Please try again.');
-          router.push('/');
-          return;
-        }
-        
-        setCartItems(itemsWithDetails);
-        
-        // Calculate subtotal
-        let total = 0;
-        for (const item of itemsWithDetails) {
-          const price = typeof item.price === 'string'
-            ? parseFloat(item.price)
-            : item.price;
-          total += price * item.cartQuantity;
-        }
-        setSubtotal(total);
-        
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching cart items:', error);
-        // Only show error toast if not during order completion
-        if (!isOrderComplete) {
-          toast.error('Failed to load cart items');
-          router.push('/');
-        }
+  const fetchCartItems = useCallback(async () => {
+    if (items.length === 0) {
+      if (!isOrderComplete) {
+        toast.error('Failed to load cart items');
+        router.push('/');
       }
-    };
+    }
+  }, [items, router, isOrderComplete]);
 
+  useEffect(() => {
     fetchCartItems();
-  }, [items, router]);
+  }, [fetchCartItems]);
 
   const handleNextStep = () => {
     if (currentStep === 0 && !selectedAddressId) {
@@ -149,10 +79,11 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (currentStep === 1 && paymentMethod === 'RAZORPAY') {
-      toast.error('Razorpay payments are currently unavailable');
-      return;
-    }
+    // Remove Razorpay check since it's not an option anymore
+    // if (currentStep === 1 && paymentMethod === 'RAZORPAY') {
+    //   toast.error('Razorpay payments are currently unavailable');
+    //   return;
+    // }
 
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -207,19 +138,15 @@ export default function CheckoutPage() {
 
       setOrderId(data.id);
 
-      if (paymentMethod === 'COD') {
-        // Mark order as complete to prevent empty cart message
-        setIsOrderComplete(true);
-        // Show success message
-        toast.success('Order placed successfully!');
-        // Clear cart
-        clearCart();
-        // Navigate to account page with orders section
-        router.push("/account?tab=orders");
-      } else if (paymentMethod === 'RAZORPAY') {
-        // Proceed to payment step with Razorpay
-        setCurrentStep(currentStep + 1);
-      }
+      // Since Razorpay is removed, only handle COD
+      // Mark order as complete to prevent empty cart message
+      setIsOrderComplete(true);
+      // Show success message
+      toast.success('Order placed successfully!');
+      // Clear cart
+      clearCart();
+      // Navigate to account page with orders section
+      router.push("/account?tab=orders");
     } catch (error) {
       console.error('Checkout error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to process checkout');
@@ -229,26 +156,20 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
-    if (paymentMethod === 'COD') {
-      handleCreateOrder();
-    } else if (paymentMethod === 'RAZORPAY') {
-      if (!orderId) {
-        // Create order first
-        await handleCreateOrder();
-      }
-    }
+    // Only COD is available now
+    handleCreateOrder();
   };
 
-  const handlePaymentSuccess = (paymentData: PaymentVerificationData) => {
-    clearCart();
-    toast.success(`Payment successful! ${paymentData.message}`);
-    router.push("/account?tab=orders");
-  };
+  // Remove payment success/error handlers since they're not needed
+  // const handlePaymentSuccess = (paymentData: PaymentVerificationData) => {
+  //   clearCart();
+  //   toast.success(`Payment successful! ${paymentData.message}`);
+  //   router.push("/account?tab=orders");
+  // };
 
-  const handlePaymentError = (error: Error) => {
-    toast.error(`Payment failed: ${error.message}`);
-    // You could redirect to a payment failure page or stay on checkout
-  };
+  // const handlePaymentError = (error: Error) => {
+  //   toast.error(`Payment failed: ${error.message}`);
+  // };
 
   if (status === "loading" || isLoading) {
     return (
@@ -304,18 +225,7 @@ export default function CheckoutPage() {
                     />
                   </div>
 
-                  {/* Razorpay Payment Button */}
-                  {paymentMethod === 'RAZORPAY' && orderId && (
-                    <div className="mt-6">
-                      <h3 className="text-sm font-medium text-gray-500 mb-2">Complete Payment</h3>
-                      <RazorpayPayment 
-                        orderId={orderId} 
-                        amount={subtotal}
-                        onPaymentSuccess={handlePaymentSuccess}
-                        onPaymentError={handlePaymentError}
-                      />
-                    </div>
-                  )}
+                  {/* Remove Razorpay Payment Button */}
                 </div>
               </div>
             )}
@@ -340,7 +250,7 @@ export default function CheckoutPage() {
               ) : (
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={isSubmitting || (paymentMethod === 'RAZORPAY')}
+                  disabled={isSubmitting}
                   className={`${currentStep > 0 ? 'ml-auto' : ''} bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50`}
                 >
                   {isSubmitting ? "Processing..." : "Place Order"}
@@ -350,7 +260,10 @@ export default function CheckoutPage() {
           </div>
           
           <div className="lg:col-span-5 mt-8 lg:mt-0">
-            <OrderSummary items={cartItems} subtotal={subtotal} />
+            <OrderSummary 
+              items={cartItems.filter(item => item.cartQuantity > 0)} 
+              subtotal={subtotal} 
+            />
           </div>
         </div>
       </div>

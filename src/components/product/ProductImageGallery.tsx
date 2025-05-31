@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 
 interface ProductImage {
@@ -14,13 +14,10 @@ interface ProductImageGalleryProps {
 }
 
 export default function ProductImageGallery({ images, defaultImagePublicId }: ProductImageGalleryProps) {
-  // Find the index of the default image if it exists
-  const findDefaultImageIndex = () => {
-    if (!defaultImagePublicId) return 0;
-    
-    const index = images.findIndex(img => img.publicId === defaultImagePublicId);
-    return index >= 0 ? index : 0;
-  };
+  const findDefaultImageIndex = useCallback(() => {
+    if (!defaultImagePublicId || !images?.length) return 0;
+    return images.findIndex((img: ProductImage) => img.publicId === defaultImagePublicId) || 0;
+  }, [defaultImagePublicId, images]);
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(findDefaultImageIndex());
   const [isZoomed, setIsZoomed] = useState(false);
@@ -44,7 +41,7 @@ export default function ProductImageGallery({ images, defaultImagePublicId }: Pr
   // Update selected image index when defaultImagePublicId changes
   useEffect(() => {
     setSelectedImageIndex(findDefaultImageIndex());
-  }, [defaultImagePublicId, images]);
+  }, [findDefaultImageIndex]);
   
   // If no images are provided, use a placeholder
   const displayImages = images.length > 0 

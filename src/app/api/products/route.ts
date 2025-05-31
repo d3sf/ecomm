@@ -170,7 +170,7 @@ export async function POST(request: Request) {
 }
 
 // ✅ PUT - Update a product
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: idStr } = await params;
     const id = parseInt(idStr);

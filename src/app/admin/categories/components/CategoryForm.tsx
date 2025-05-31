@@ -118,7 +118,22 @@ const CategoryForm = ({
           <div className="flex-1">
             <ImageUpload
               images={form.image ? [form.image] : []}
-              onChange={(images) => {
+              onChange={async (images) => {
+                // If images array is empty, it means the image was deleted
+                if (images.length === 0 && form.image?.publicId) {
+                  try {
+                    // Delete the image from Cloudinary
+                    const response = await fetch(`/api/cloudinary/delete-image?publicId=${encodeURIComponent(form.image.publicId)}`, {
+                      method: 'DELETE',
+                    });
+                    
+                    if (!response.ok) {
+                      console.error('Failed to delete image from Cloudinary');
+                    }
+                  } catch (error) {
+                    console.error('Error deleting image:', error);
+                  }
+                }
                 handleChange("image", images[0] || undefined);
               }}
               label="Category Image"

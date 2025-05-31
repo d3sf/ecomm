@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/route";
+import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function PUT(request: Request) {

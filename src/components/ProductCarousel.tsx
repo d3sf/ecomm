@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import ProductCard from '@/components/product/ProductCard';
@@ -28,7 +28,7 @@ interface ProductCarouselProps {
   categoryId: number;
 }
 
-export default function ProductCarousel({ categoryName, products, categorySlug, categoryId }: ProductCarouselProps) {
+export default function ProductCarousel({ categoryName, products = [], categorySlug, categoryId }: ProductCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [productsPerView, setProductsPerView] = useState(6);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -41,26 +41,31 @@ export default function ProductCarousel({ categoryName, products, categorySlug, 
     else setProductsPerView(6); // Larger screens
   };
 
-  // Add event listener for window resize
-  useState(() => {
+  // Add event listener for window resize using useEffect
+  useEffect(() => {
+    // Initial update
     updateProductsPerView();
+    
+    // Add resize event listener
     window.addEventListener('resize', updateProductsPerView);
+    
+    // Cleanup function
     return () => window.removeEventListener('resize', updateProductsPerView);
-  });
+  }, []);
 
   const nextSlide = () => {
     if (currentIndex + productsPerView < products.length && !isAnimating) {
       setIsAnimating(true);
-      setCurrentIndex(currentIndex + 5);
-      setTimeout(() => setIsAnimating(false), 500);
+      setCurrentIndex(currentIndex + 1);
+      setTimeout(() => setIsAnimating(false), 300);
     }
   };
 
   const prevSlide = () => {
     if (currentIndex > 0 && !isAnimating) {
       setIsAnimating(true);
-      setCurrentIndex(currentIndex - 5);
-      setTimeout(() => setIsAnimating(false), 500);
+      setCurrentIndex(currentIndex - 1);
+      setTimeout(() => setIsAnimating(false), 300);
     }
   };
 
@@ -90,6 +95,11 @@ export default function ProductCarousel({ categoryName, products, categorySlug, 
     return [{ url: '/placeholder.png' }];
   };
 
+  // Guard against empty products array
+  if (!products || products.length === 0) {
+    return null;
+  }
+
   return (
     <div className="relative w-full">
       <div className="flex items-center justify-between mb-6">
@@ -105,7 +115,7 @@ export default function ProductCarousel({ categoryName, products, categorySlug, 
       <div className="relative w-full overflow-hidden">
         <div 
           ref={containerRef}
-          className="flex transition-transform duration-500 ease-in-out"
+          className="flex transition-transform duration-300 ease-out"
           style={{
             transform: `translateX(-${currentIndex * (192 + 32)}px)`,
             gap: '2rem'

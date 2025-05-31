@@ -139,24 +139,28 @@ export default function BestSellingProducts() {
           {data.bestSellingProducts.map((product) => (
             <div key={product.id} className="flex items-center border-b pb-2">
               <div className="w-12 h-12 relative mr-3 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
-                {product.image ? (
+                {typeof product.image === 'string' && product.image.length > 0 ? (
                   <Image
                     src={product.image}
                     alt={product.name}
                     fill
-                    sizes="48px"
                     className="object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    No img
+                    <Image
+                      src="/placeholder.png"
+                      alt="No image"
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
                 <p className="text-sm text-gray-500">
-                  ${product.price.toFixed(2)} · {product.quantity} sold
+                  ₹{product.price.toFixed(2)} · {product.quantity} sold
                 </p>
               </div>
             </div>

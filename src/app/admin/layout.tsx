@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import AdminNavbar from "@/components/admin/AdminNavbar";
 import { 
@@ -14,6 +14,18 @@ import {
     LogOut,
     UserCog
 } from "lucide-react";
+import { useEffect, Suspense } from 'react';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
+import './globals.css';
+
+// Configure NProgress
+NProgress.configure({
+  minimum: 0.3,
+  easing: 'ease',
+  speed: 800,
+  showSpinner: false,
+});
 
 //  [todo] add Icons
 const sidebarLinks = [
@@ -26,14 +38,29 @@ const sidebarLinks = [
     { name: "Staff", path: "/admin/staff", icon: UserCog },
 ];
 
-export default function AdminLayout({
+function AdminLayoutContent({
     children,
 }: {
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { status } = useSession();
     const isLoginPage = pathname === "/admin/login";
+    
+    useEffect(() => {
+        NProgress.start();
+        
+        // Simulate a minimum loading time for better UX
+        const timer = setTimeout(() => {
+            NProgress.done();
+        }, 300);
+
+        return () => {
+            clearTimeout(timer);
+            NProgress.done();
+        };
+    }, [pathname, searchParams]);
     
     // If we're on the login page, just render the children
     if (isLoginPage) {
@@ -117,6 +144,22 @@ export default function AdminLayout({
                 </main> 
             </div>
         </div>
+    );
+}
+
+export default function AdminLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+            </div>
+        }>
+            <AdminLayoutContent>{children}</AdminLayoutContent>
+        </Suspense>
     );
 }
 

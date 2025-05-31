@@ -59,6 +59,13 @@ const SortableImage = ({ image, index, isDefault, onRemove }: SortableImageProps
     transition,
   };
 
+  const handleRemove = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Remove button clicked');
+    onRemove();
+  };
+
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="relative group mt-3">
       <div className={`border p-2  rounded ${isDefault ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}>
@@ -76,8 +83,9 @@ const SortableImage = ({ image, index, isDefault, onRemove }: SortableImageProps
         )}
       </div>
       <button
-        onClick={onRemove}
-        className="absolute -top-3.5 start-9/10 bg-red-500 text-white rounded-full p-1"
+        onClick={handleRemove}
+        type="button"
+        className="absolute -top-3.5 start-9/10 bg-red-500 text-white rounded-full p-1 z-10"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -174,13 +182,42 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     }
   };
 
-  const handleRemoveImage = (indexToRemove: number) => {
-    const newImages = images.filter((_, index) => index !== indexToRemove);
-    onChange(newImages);
+  const handleRemoveImage = async (indexToRemove: number) => {
+    const imageToRemove = images[indexToRemove];
+    console.log('Removing image:', imageToRemove);
+    
+    try {
+      // Delete the image from Cloudinary first
+      console.log('Sending delete request to Cloudinary...');
+      const response = await fetch(`/api/cloudinary/delete-image?publicId=${encodeURIComponent(imageToRemove.publicId)}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('Delete response:', response);
+      const result = await response.json();
+      console.log('Delete result:', result);
+      
+      if (!response.ok) {
+        console.error('Failed to delete image from Cloudinary:', result.error);
+        // Continue with UI removal even if server deletion fails
+      }
+      
+      // Then remove from local state
+      const newImages = images.filter((_, index) => index !== indexToRemove);
+      onChange(newImages);
 
-    // If the removed image was the default and we still have images, set the first one as default
-    if (indexToRemove === 0 && newImages.length > 0 && onDefaultImageChange) {
-      onDefaultImageChange(newImages[0].publicId);
+      // If the removed image was the default and we still have images, set the first one as default
+      if (indexToRemove === 0 && newImages.length > 0 && onDefaultImageChange) {
+        onDefaultImageChange(newImages[0].publicId);
+      }
+    } catch (error) {
+      console.error('Error removing image:', error);
+      // Continue with UI removal even if server deletion fails
+      const newImages = images.filter((_, index) => index !== indexToRemove);
+      onChange(newImages);
     }
   };
 
@@ -188,8 +225,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     const { active, over } = event;
     
     if (over && active.id !== over.id) {
-      const oldIndex = images.findIndex((img) => img.publicId === active.id);
-      const newIndex = images.findIndex((img) => img.publicId === over.id);
+      const oldIndex = images.findIndex((img: CloudinaryImage) => img.publicId === active.id);
+      const newIndex = images.findIndex((img: CloudinaryImage) => img.publicId === over.id);
       
       const newImages = arrayMove(images, oldIndex, newIndex);
       onChange(newImages);

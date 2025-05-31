@@ -1,4 +1,4 @@
-import { MapPin, Edit, Trash2 } from "lucide-react";
+import { MapPin, Edit, Trash } from "lucide-react";
 
 interface Address {
   id?: number;
@@ -69,7 +69,7 @@ export default function AddressCard({
               onClick={handleDelete}
               className="text-gray-400 hover:text-red-500"
             >
-              <Trash2 className="h-5 w-5" />
+              <Trash className="h-5 w-5" />
             </button>
           </div>
         )}

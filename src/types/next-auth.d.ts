@@ -1,5 +1,5 @@
 import "next-auth";
-import { JWT } from "next-auth/jwt";
+import type { JWT as NextAuthJWT } from "next-auth/jwt";
 
 declare module "next-auth" {
   interface User {
@@ -25,7 +25,7 @@ declare module "next-auth" {
 }
 
 declare module "next-auth/jwt" {
-  interface JWT {
+  interface JWT extends NextAuthJWT {
     id: string;
     type: "user" | "admin";
     role: string;

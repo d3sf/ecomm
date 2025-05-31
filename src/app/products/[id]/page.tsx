@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import { ProductType } from "@/lib/zodvalidation";
 import Image from "next/image";
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 export default function ProductDetails() {
   const params = useParams();
@@ -12,26 +13,30 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchProduct() {
-      try {
-        const { id } = params;
-        const productRes = await axios.get(`/api/products/${id}`);
-        setProduct(productRes.data);
-      } catch (err) {
-        setError("Failed to load product");
-        console.error("Error fetching product:", err);
-      } finally {
-        setLoading(false);
-      }
+  const fetchProduct = useCallback(async () => {
+    try {
+      const { id } = params;
+      const productRes = await axios.get(`/api/products/${id}`);
+      setProduct(productRes.data);
+    } catch (err) {
+      setError("Failed to load product");
+      console.error("Error fetching product:", err);
+    } finally {
+      setLoading(false);
     }
+  }, [params]);
 
+  useEffect(() => {
     if (params.id) {
       fetchProduct();
     }
-  }, [params.id]);
+  }, [params.id, fetchProduct]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (
+    <div className="flex justify-center items-center min-h-[400px]">
+      <LoadingSpinner size="lg" color="primary" />
+    </div>
+  );
   if (error) return <div className="text-red-500">{error}</div>;
   if (!product) return <div>Product not found</div>;
 
@@ -52,7 +57,7 @@ export default function ProductDetails() {
             {product.images?.slice(1).map((image, index) => (
               <div key={index} className="aspect-square relative overflow-hidden rounded-lg border">
                 <Image
-                  src={image.url}
+                  src={image.url || "/placeholder.png"}
                   alt={`${product.name} ${index + 2}`}
                   fill
                   className="object-cover"

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 
 interface Product {
@@ -33,14 +34,7 @@ export default function EditProductPage() {
 
   const productId = params.id;
 
-  useEffect(() => {
-    if (productId) {
-      fetchProduct();
-    }
-    fetchCategories();
-  }, [productId]);
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/products/${productId}`);
       const data = await response.json();
@@ -51,7 +45,12 @@ export default function EditProductPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [productId]);
+
+  useEffect(() => {
+    fetchProduct();
+    fetchCategories();
+  }, [fetchProduct]);
 
   const fetchCategories = async () => {
     try {
@@ -96,7 +95,11 @@ export default function EditProductPage() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <LoadingSpinner size="lg" color="primary" />
+      </div>
+    );
   }
 
   if (!product) {

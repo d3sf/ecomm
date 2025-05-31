@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/auth";
 import { prisma } from "@/lib/prisma";
-import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/route";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(shopAuthOptions);
@@ -27,7 +27,7 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const orderId = parseInt(id, 10);
     if (isNaN(orderId)) {
       return NextResponse.json({ error: "Invalid order ID" }, { status: 400 });

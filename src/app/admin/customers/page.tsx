@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -21,26 +21,35 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCustomers, setTotalCustomers] = useState(0);
+  const customersPerPage = 10;
 
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
-
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     try {
-      const response = await fetch("/api/admin/customers");
+      const response = await fetch(
+        `/api/admin/customers?page=${currentPage}&limit=${customersPerPage}${searchTerm ? `&search=${searchTerm}` : ''}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch customers");
       }
       const data = await response.json();
-      setCustomers(data);
+      setCustomers(data.customers);
+      setTotalPages(data.pagination.pages);
+      setTotalCustomers(data.pagination.total);
     } catch (error) {
       console.error("Error fetching customers:", error);
       toast.error("Failed to load customers");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, searchTerm]);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
 
   const handleDelete = async (id: number) => {
     try {
@@ -54,6 +63,7 @@ export default function CustomersPage() {
 
       setCustomers(customers.filter((customer) => customer.id !== id));
       toast.success("Customer deleted successfully");
+      fetchCustomers(); // Refresh the list after deletion
     } catch (error) {
       console.error("Error deleting customer:", error);
       toast.error("Failed to delete customer");
@@ -94,6 +104,7 @@ export default function CustomersPage() {
       setCustomers(customers.filter((customer) => !selectedCustomers.includes(customer.id)));
       setSelectedCustomers([]);
       toast.success("Customers deleted successfully");
+      fetchCustomers(); // Refresh the list after bulk deletion
     } catch (error) {
       console.error("Error deleting customers:", error);
       toast.error("Failed to delete customers");
@@ -116,7 +127,8 @@ export default function CustomersPage() {
           )}
           <Button
             onClick={() => router.push("/admin/customers/new")}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 opacity-50 cursor-not-allowed"
+            disabled={true}
           >
             <Plus size={16} />
             Add Customer
@@ -132,6 +144,13 @@ export default function CustomersPage() {
           onDelete={handleDelete}
           onEdit={handleEdit}
           onSelectionChange={handleSelectionChange}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCustomers={totalCustomers}
+          onPageChange={setCurrentPage}
+          customersPerPage={customersPerPage}
         />
       )}
     </div>

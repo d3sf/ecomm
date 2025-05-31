@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 import AddressForm from "@/components/address/AddressForm";
 import AddressCard from "@/components/address/AddressCard";
 import { Address } from "@/types/address";
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface AddressSelectionProps {
   selectedAddressId: number | null;
@@ -135,7 +136,11 @@ export default function AddressSelection({
   };
 
   if (isLoading) {
-    return <div>Loading addresses...</div>;
+    return (
+      <div className="flex justify-center items-center py-8">
+        <LoadingSpinner size="md" color="primary" />
+      </div>
+    );
   }
 
   return (

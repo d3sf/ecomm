@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 const personalInfoSchema = z.object({
     name: z.string().min(1, "Name is required").optional(),
@@ -104,6 +105,14 @@ export default function AdminProfile() {
             setIsLoading(false);
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-[400px]">
+                <LoadingSpinner size="lg" color="primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-2xl mx-auto py-8">

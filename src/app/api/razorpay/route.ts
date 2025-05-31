@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
-import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/route";
+import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/auth";
 import Razorpay from "razorpay";
+import { Prisma } from "@prisma/client";
 
 // Initialize Razorpay with test keys
 // In production, use environment variables for these keys
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
     
     await prisma.order.update({
       where: { id: parseInt(orderId) },
-      data: updateData as any // Type assertion needed for prisma client
+      data: updateData as Prisma.OrderUpdateInput
     });
 
     // Set key_id explicitly
@@ -136,7 +137,7 @@ export async function PUT(req: Request) {
       where: { 
         id: parseInt(orderId) 
       },
-      data: updateData as any // Type assertion needed for prisma client
+      data: updateData as Prisma.OrderUpdateInput
     });
 
     return NextResponse.json({ 

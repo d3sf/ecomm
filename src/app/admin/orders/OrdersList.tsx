@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import axios, { AxiosError } from "axios";
-import { ChevronDown, Eye, FileText } from "lucide-react";
+import { ChevronDown, Eye, FileText, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { TableSkeleton } from "@/components/admin/skeletons";
 
@@ -50,13 +50,22 @@ export default function OrdersList() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const ordersPerPage = 10;
   const router = useRouter();
   const { status } = useSession();
 
   const fetchOrders = useCallback(async () => {
     try {
-      const response = await axios.get("/api/admin/orders");
-      setOrders(response.data);
+      const response = await axios.get(
+        `/api/admin/orders?page=${currentPage}&limit=${ordersPerPage}${searchTerm ? `&search=${searchTerm}` : ''}`
+      );
+      setOrders(response.data.orders);
+      setTotalPages(response.data.pagination.pages);
+      setTotalOrders(response.data.pagination.total);
       setError(null);
     } catch (error: unknown) {
       console.error("Error fetching orders:", error);
@@ -69,7 +78,7 @@ export default function OrdersList() {
     } finally {
       setIsLoading(false);
     }
-  }, [router]);
+  }, [router, searchTerm, currentPage]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -79,8 +88,19 @@ export default function OrdersList() {
 
     if (status === "authenticated") {
       fetchOrders();
+      
+      // Set up polling every 30 seconds
+      const pollInterval = setInterval(fetchOrders, 30000);
+      
+      // Cleanup interval on unmount
+      return () => clearInterval(pollInterval);
     }
   }, [router, status, fetchOrders]);
+
+  // Reset to first page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const handleStatusChange = async (orderId: number, newStatus: string) => {
     setUpdatingStatus(orderId);
@@ -117,6 +137,71 @@ export default function OrdersList() {
     }
   };
 
+  const PaginationControls = () => (
+    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+      <div className="flex justify-between flex-1 sm:hidden">
+        <button
+          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        <button
+          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+      <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm text-gray-700">
+            Showing <span className="font-medium">{(currentPage - 1) * ordersPerPage + 1}</span> to{' '}
+            <span className="font-medium">
+              {Math.min(currentPage * ordersPerPage, totalOrders)}
+            </span>{' '}
+            of <span className="font-medium">{totalOrders}</span> results
+          </p>
+        </div>
+        <div>
+          <nav className="inline-flex -space-x-px rounded-md shadow-sm isolate" aria-label="Pagination">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center px-2 py-2 text-gray-400 rounded-l-md border border-gray-300 bg-white text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="sr-only">Previous</span>
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+            </button>
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${
+                  currentPage === i + 1
+                    ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                } border`}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="relative inline-flex items-center px-2 py-2 text-gray-400 rounded-r-md border border-gray-300 bg-white text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="sr-only">Next</span>
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  );
+
   if (status === "loading" || isLoading) {
     return <TableSkeleton rows={6} columns={8} />;
   }
@@ -141,6 +226,21 @@ export default function OrdersList() {
 
   return (
     <>
+      <div className="mb-4">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by order ID, customer name, or email..."
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+      </div>
+
       <div className="bg-white rounded-lg shadow">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -190,6 +290,7 @@ export default function OrdersList() {
                   </td>
                   <td className="px-4 py-2.5 whitespace-nowrap text-sm text-gray-900">
                     <div className="font-medium">{order.user.name}</div>
+                    <div className="text-gray-500">{order.user.email}</div>
                   </td>
                   <td className="px-4 py-2.5 whitespace-nowrap text-sm text-gray-500">
                     {order.paymentMethod}
@@ -203,7 +304,7 @@ export default function OrdersList() {
                     </span>
                   </td>
                   <td className="px-4 py-2.5 whitespace-nowrap">
-                    <div className="relative inline-block w-28">
+                    <div className="relative inline-block w-36">
                       <select
                         value={order.status}
                         onChange={(e) => handleStatusChange(order.id, e.target.value)}
@@ -242,6 +343,7 @@ export default function OrdersList() {
             </tbody>
           </table>
         </div>
+        <PaginationControls />
       </div>
     </>
   );

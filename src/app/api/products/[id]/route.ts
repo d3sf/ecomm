@@ -14,39 +14,54 @@ cloudinary.config({
 
 // GET single product
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const productId = Number(id);
-  
   try {
-    console.log("Fetching single product", productId);
+    const { id } = await params;
     
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Product ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Try to parse as number first
+    let parsedId: number | string = id;
+    if (!isNaN(Number(id))) {
+      parsedId = Number(id);
+    }
+    
+    // Get the basic product data
     const product = await prisma.product.findUnique({
-      where: { id: productId },
-      include: {
-        defaultCategory: true,
-        categories: {
-          include: {
-            category: true
-          }
-        },
-        attributes: true,
+      where: {
+        id: typeof parsedId === 'number' ? parsedId : undefined,
       },
     });
 
-    console.log("Found product with defaultCategory:", product?.defaultCategory);
-
     if (!product) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Product not found' },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json(product);
+    // Format the response with the necessary fields for cart
+    return NextResponse.json({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      images: Array.isArray(product.images) 
+        ? product.images 
+        : (typeof product.images === 'string' 
+            ? JSON.parse(product.images) 
+            : [{ url: '/placeholder.png' }])
+    });
   } catch (error) {
-    console.error("Error fetching product:", error);
+    console.error('Error fetching product:', error);
     return NextResponse.json(
-      { error: "Failed to fetch product" },
+      { error: 'Failed to fetch product' },
       { status: 500 }
     );
   }
@@ -55,7 +70,7 @@ export async function GET(
 // PUT - Update product
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
   const productId = Number(id);
@@ -69,7 +84,7 @@ export async function PUT(
     
     // Remove timestamp fields from validation
     const { createdAt: _createdAt, updatedAt: _updatedAt, ...validatedData } = otherData;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    
     const _ = { _createdAt, _updatedAt };
 
     // Create a validation schema for updates
@@ -212,7 +227,7 @@ export async function PUT(
 // PATCH - Update product status
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
   const productId = parseInt(id);
@@ -266,7 +281,7 @@ export async function PATCH(
 // DELETE product
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
   const productId = Number(id);

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { adminAuthOptions } from '../../admin-auth/[...nextauth]/route';
+import { adminAuthOptions } from '../../admin-auth/[...nextauth]/auth';
 import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 

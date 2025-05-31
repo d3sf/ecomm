@@ -10,6 +10,7 @@ import SlidingPanel from "@/components/admin/SlidingPanel";
 import { ProductType, CategoryType } from "@/lib/zodvalidation";
 import { ImportProgressDialog } from "@/components/admin/ImportProgressDialog";
 import { TableSkeleton } from "@/components/admin/skeletons";
+import SearchBar from "./components/SearchBar";
 
 // Custom hook for mount effect
 const useMountEffect = (effect: () => void) => {
@@ -298,6 +299,8 @@ const ProductsPage = () => {
         </div>
       </div>
 
+      <SearchBar onSearch={handleSearch} />
+
       {isLoading ? (
         <TableSkeleton rows={8} columns={5} />
       ) : (
@@ -313,7 +316,6 @@ const ProductsPage = () => {
           totalItems={totalItems}
           itemsPerPage={itemsPerPage}
           onPageChange={handlePageChange}
-          onSearch={handleSearch}
         />
       )}
 

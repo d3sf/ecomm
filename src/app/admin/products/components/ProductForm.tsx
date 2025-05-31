@@ -2,7 +2,7 @@
 
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import type { ProductType, CategoryType } from "@/lib/zodvalidation";
-import ImageUpload from "@/components/ImageUpload";
+import ImageUpload, { CloudinaryImage } from "@/components/ImageUpload";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import { ChevronDown, ChevronRight, X } from "lucide-react";
 
@@ -177,7 +177,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
           <label className="w-40 font-medium mt-2">Images</label>
           <div className="flex-1">
             <ImageUpload
-              images={product.images || []}
+              images={(product.images || []).filter((img): img is CloudinaryImage => 
+                typeof img.url === 'string' && typeof img.publicId === 'string'
+              )}
               onChange={(images) =>
                 setProduct(prev => ({ ...prev, images }))
               }

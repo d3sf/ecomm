@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { formatCurrency } from "@/utils/currency";
 
 interface CartItem {
   id: number;
@@ -18,6 +19,12 @@ interface OrderSummaryProps {
 export default function OrderSummary({ items, subtotal }: OrderSummaryProps) {
   const shipping = 0; // Free shipping
   const total = subtotal + shipping;
+
+  // Calculate item price accounting for string or number
+  const getItemPrice = (price: string | number, quantity: number) => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return formatCurrency(numPrice * quantity);
+  };
 
   return (
     <div className="bg-white shadow sm:rounded-lg">
@@ -49,7 +56,7 @@ export default function OrderSummary({ items, subtotal }: OrderSummaryProps) {
                     <div className="flex justify-between text-base font-medium text-gray-900">
                       <h3>{item.name}</h3>
                       <p className="ml-4">
-                        ${(typeof item.price === 'string' ? parseFloat(item.price) : item.price) * item.cartQuantity}
+                        {getItemPrice(item.price, item.cartQuantity)}
                       </p>
                     </div>
                   </div>
@@ -65,7 +72,7 @@ export default function OrderSummary({ items, subtotal }: OrderSummaryProps) {
         <div className="border-t border-gray-200 mt-6 pt-6">
           <div className="flex justify-between text-base font-medium text-gray-900">
             <p>Subtotal</p>
-            <p>${subtotal.toFixed(2)}</p>
+            <p>{formatCurrency(subtotal)}</p>
           </div>
           <div className="flex justify-between text-base font-medium text-gray-900 mt-2">
             <p>Shipping</p>
@@ -73,7 +80,7 @@ export default function OrderSummary({ items, subtotal }: OrderSummaryProps) {
           </div>
           <div className="flex justify-between text-lg font-medium text-gray-900 mt-4 pt-4 border-t border-gray-200">
             <p>Total</p>
-            <p>${total.toFixed(2)}</p>
+            <p>{formatCurrency(total)}</p>
           </div>
         </div>
       </div>

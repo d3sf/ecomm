@@ -12,7 +12,7 @@ export default function ProductGrid({ products }: { products: ProductType[] }) {
             name: product.name,
             price: product.price,
             quantity: product.quantity,
-            images: product.images || [],
+            images: product.images as { url: string; publicId?: string }[] || [],
             slug: product.slug
           }}
         />

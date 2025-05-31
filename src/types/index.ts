@@ -23,7 +23,7 @@ export interface Product {
   name: string;
   slug: string;
   description: string | null;
-  images: Record<string, any>; // Using Record instead of any
+  images: Record<string, { url: string; publicId: string }>;
   published: boolean;
   price: number;
   quantity: string;

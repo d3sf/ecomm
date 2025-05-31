@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -54,6 +55,14 @@ export default function AdminLogin() {
       setError("An error occurred during Google sign in. Please try again.");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <LoadingSpinner size="lg" color="primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

@@ -53,19 +53,21 @@ export default function OrderCard({ order, onView, onDownloadInvoice }: OrderCar
           </div>
         ))}
       </div>
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-gray-500">Shipping Address:</p>
-          <p className="text-sm">
-            {order.shippingAddress.fullName},{" "}
-            {order.shippingAddress.addressLine1},{" "}
-            {order.shippingAddress.city},{" "}
-            {order.shippingAddress.state} -{" "}
-            {order.shippingAddress.postalCode}
-          </p>
+      
+      <div className="mt-4 space-y-2">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+          <p className="text-sm text-gray-500 mb-1 sm:mb-0">Shipping Address:</p>
+          <div className="text-sm">
+            <p className="font-medium">{order.shippingAddress.fullName}</p>
+            <p>{order.shippingAddress.addressLine1}</p>
+            {order.shippingAddress.addressLine2 && (
+              <p>{order.shippingAddress.addressLine2}</p>
+            )}
+            <p>{order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.postalCode}</p>
+          </div>
         </div>
-        <div className="flex justify-between items-center mt-2">
-          <p className="text-sm text-gray-500">Total Amount:</p>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-2 border-t border-gray-100">
+          <p className="text-sm text-gray-500 mb-1 sm:mb-0">Total Amount:</p>
           <div className="flex items-center gap-4">
             <p className="font-medium">₹{order.totalAmount}</p>
             <div className="flex items-center gap-2">

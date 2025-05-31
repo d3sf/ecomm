@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/route";
+import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/auth";
 import { prisma } from "@/lib/prisma";
 import { jsPDF } from "jspdf";
 import { Order, OrderItem, Product, Address, User } from "@prisma/client";
@@ -15,7 +15,7 @@ interface OrderWithDetails extends Order {
 
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(shopAuthOptions);
@@ -24,7 +24,7 @@ export async function GET(
     }
 
     // Await the params
-    const { id } = await Promise.resolve(context.params);
+    const { id } = await params;
     const orderId = parseInt(id);
     
     if (isNaN(orderId)) {

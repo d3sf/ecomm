@@ -30,20 +30,24 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
   }, [initialQuantity]);
 
   const handleIncrement = useCallback(() => {
-    const newQuantity = quantity + 1;
-    setQuantity(newQuantity);
-    onAddToCart(productId, newQuantity);
+    try {
+      const newQuantity = quantity + 1;
+      setQuantity(newQuantity);
+      onAddToCart(productId, newQuantity);
+    } catch (error) {
+      console.error("Error incrementing quantity:", error);
+    }
   }, [productId, quantity, onAddToCart]);
 
   const handleDecrement = useCallback(() => {
-    if (quantity > 0) {
-      const newQuantity = quantity - 1;
-      setQuantity(newQuantity);
-      onAddToCart(productId, newQuantity);
-    } else if (quantity === 1) {
-      // When quantity is 1 and we decrease, remove the item
-      setQuantity(0);
-      onAddToCart(productId, 0); // This will trigger the removeFromCart in the parent
+    try {
+      if (quantity > 0) {
+        const newQuantity = quantity - 1;
+        setQuantity(newQuantity);
+        onAddToCart(productId, newQuantity);
+      }
+    } catch (error) {
+      console.error("Error decrementing quantity:", error);
     }
   }, [productId, quantity, onAddToCart]);
 
