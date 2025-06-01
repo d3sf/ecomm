@@ -1,18 +1,16 @@
 import type { NextConfig } from "next";
 
+/** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'res.cloudinary.com',
-        port: '',
-        pathname: '/**',
+        hostname: '**',
       },
     ],
+    unoptimized: true, // This will use original URLs instead of Next.js optimization
   },
-  allowedDevOrigins: ['192.168.29.9'],
 };
 
 export default nextConfig;
