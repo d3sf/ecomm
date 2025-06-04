@@ -1,9 +1,9 @@
 <div style="display: flex; align-items: center; gap: 10px;">
   <!-- <img src="public/merugo-logo.svg" alt="Merugo Logo" width="40" height="40"/> -->
-  <span style="font-size: 2rem; font-weight: bold;">Merugo</span>
+  <!-- <span style="font-size: 2rem; font-weight: bold;">Merugo</span> -->
 </div>
 
-
+## Merugo
 ---
 
 A modern, full-stack e-commerce platform built with Next.js 13+, Prisma, and TypeScript. Merugo provides a seamless shopping experience with features for customers, admins, and staff, including product browsing, cart management, checkout, and an admin dashboard.
