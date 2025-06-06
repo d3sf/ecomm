@@ -81,14 +81,19 @@ export default function SearchResultsContent() {
     setProducts([]);
     setPage(1);
     setHasMore(true);
-    if (query) {
+    setIsLoading(false);
+  }, [query]);
+
+  // Fetch products when page changes or query changes
+  useEffect(() => {
+    if (query && !isLoading && hasMore) {
       fetchProducts();
     }
-  }, [fetchProducts, query]);
+  }, [query, page, fetchProducts]);
 
   // Load more products when scrolling to the bottom
   useEffect(() => {
-    if (inView && hasMore) {
+    if (inView && hasMore && !isLoading) {
       fetchProducts();
     }
   }, [inView, hasMore, fetchProducts]);

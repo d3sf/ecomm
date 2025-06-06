@@ -11,16 +11,29 @@ export async function GET(request: Request) {
     if (getAll) {
       // Return all categories without pagination
       const categories = await prisma.category.findMany({
+        where: {},
+        orderBy: [
+          { sortOrder: 'asc' },
+          { name: 'asc' }
+        ],
         include: {
           children: true,
-        },
-        orderBy: {
-          sortOrder: "asc",
-        },
+          _count: {
+            select: {
+              products: true
+            }
+          }
+        }
       });
 
+      // Transform the response to include productCount
+      const categoriesWithCount = categories.map(category => ({
+        ...category,
+        productCount: category._count.products
+      }));
+
       return NextResponse.json({
-        categories,
+        categories: categoriesWithCount,
         totalCount: categories.length,
         page: 1,
         limit: categories.length,
@@ -34,11 +47,18 @@ export async function GET(request: Request) {
 
     const [categories, totalCount] = await Promise.all([
       prisma.category.findMany({
+        where: {},
+        orderBy: [
+          { sortOrder: 'asc' },
+          { name: 'asc' }
+        ],
         include: {
           children: true,
-        },
-        orderBy: {
-          sortOrder: "asc",
+          _count: {
+            select: {
+              products: true
+            }
+          }
         },
         skip,
         take: limit,
@@ -46,8 +66,14 @@ export async function GET(request: Request) {
       prisma.category.count(),
     ]);
 
+    // Transform the response to include productCount
+    const categoriesWithCount = categories.map(category => ({
+      ...category,
+      productCount: category._count.products
+    }));
+
     return NextResponse.json({
-      categories,
+      categories: categoriesWithCount,
       totalCount,
       page,
       limit,

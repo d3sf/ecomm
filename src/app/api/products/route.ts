@@ -20,12 +20,27 @@ export async function GET(request: Request) {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
           { description: { contains: search, mode: 'insensitive' } },
-          { slug: { contains: search, mode: 'insensitive' } }
+          { slug: { contains: search, mode: 'insensitive' } },
+          {
+            categories: {
+              some: {
+                category: {
+                  name: { contains: search, mode: 'insensitive' }
+                }
+              }
+            }
+          },
+          {
+            defaultCategory: {
+              name: { contains: search, mode: 'insensitive' }
+            }
+          }
         ]
       };
     }
 
-    const [products, totalCount] = await Promise.all([
+    // Use a single transaction for both queries
+    const [products, totalCount] = await prisma.$transaction([
       prisma.product.findMany({
         where,
         skip: skip,
@@ -58,9 +73,12 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Error fetching products:", error);
     return NextResponse.json(
-      { error: "Failed to fetch products" },
+      { error: "Failed to fetch products", details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
+  } finally {
+    // Ensure connection is released
+    await prisma.$disconnect();
   }
 }
 

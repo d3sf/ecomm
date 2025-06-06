@@ -24,11 +24,22 @@ export async function GET(request: Request) {
         { name: 'asc' }
       ],
       include: {
-        children: true
+        children: true,
+        _count: {
+          select: {
+            products: true
+          }
+        }
       }
     });
 
-    return NextResponse.json(categories);
+    // Transform the response to include productCount
+    const categoriesWithCount = categories.map(category => ({
+      ...category,
+      productCount: category._count.products
+    }));
+
+    return NextResponse.json(categoriesWithCount);
   } catch (error) {
     console.error('Error fetching categories:', error);
     return NextResponse.json(

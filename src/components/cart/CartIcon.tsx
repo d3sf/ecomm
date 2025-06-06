@@ -2,7 +2,7 @@
 
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import CartModal from "./CartModal";
 import { theme } from "@/lib/theme";
 
@@ -12,68 +12,57 @@ export default function CartIcon() {
   const [isMounted, setIsMounted] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   
-  // Calculate total items from the cart items with null checking
-  const totalItems = isMounted && items && Array.isArray(items) 
-    ? items.reduce((sum, item) => sum + (item?.quantity || 0), 0) 
-    : 0;
+  // Memoize total items calculation
+  const totalItems = useMemo(() => {
+    return isMounted && items && Array.isArray(items) 
+      ? items.reduce((sum, item) => sum + (item?.quantity || 0), 0) 
+      : 0;
+  }, [isMounted, items]);
     
-  // Check if cart is empty - default to true for server rendering
-  const isCartEmpty = !isMounted || totalItems === 0;
+  // Memoize cart empty state
+  const isCartEmpty = useMemo(() => {
+    return !isMounted || totalItems === 0;
+  }, [isMounted, totalItems]);
 
-  // This ensures component only renders badge on client-side after hydration
+  // Memoize aria-label
+  const ariaLabel = useMemo(() => {
+    return `Shopping cart${totalItems > 0 ? ` with ${totalItems} items` : ' (empty)'}`;
+  }, [totalItems]);
+
+  // Set mounted state only once
   useEffect(() => {
     setIsMounted(true);
-    
-    // Set aria-label after client-side hydration
+  }, []);
+
+  // Update aria-label when it changes
+  useEffect(() => {
     if (buttonRef.current) {
-      buttonRef.current.setAttribute(
-        'aria-label', 
-        `Shopping cart${totalItems > 0 ? ` with ${totalItems} items` : ' (empty)'}`
-      );
+      buttonRef.current.setAttribute('aria-label', ariaLabel);
     }
-  }, [totalItems]);
+  }, [ariaLabel]);
 
   // Prefetch cart data when hovering over the cart icon
   const prefetchCartData = useCallback(() => {
     if (items && items.length > 0) {
       const productIds = items.map(item => item.id);
       
-      // Start prefetching in the background
       fetch('/api/cart-products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productIds }),
-        // Using no-store to avoid interfering with other cache strategies
         cache: 'no-store',
       }).catch(() => {
-        // Silently fail on prefetch - it's just an optimization
+        // Silently fail on prefetch
       });
     }
   }, [items]);
 
   // Handle cart button click
-  const handleCartClick = () => {
-    // Only open the modal if the cart is not empty
+  const handleCartClick = useCallback(() => {
     if (!isCartEmpty) {
       setIsModalOpen(true);
     }
-  };
-
-  // For server rendering, use a stable class and disabled state
-  const buttonClass = "relative p-2 transition-colors text-gray-400 cursor-not-allowed opacity-70";
-  const buttonDisabled = true;
-  const buttonTitle = "Your cart is empty";
-  
-  // Only apply dynamic styling after component has mounted on client
-  const clientButtonClass = isMounted ? 
-    `relative p-2 transition-colors ${
-      isCartEmpty 
-        ? 'text-gray-400 cursor-not-allowed opacity-70' 
-        : 'text-gray-700 hover:text-gray-900'
-    }` : buttonClass;
-    
-  const clientButtonDisabled = isMounted ? isCartEmpty : buttonDisabled;
-  const clientButtonTitle = isMounted ? (isCartEmpty ? "Your cart is empty" : "View your cart") : buttonTitle;
+  }, [isCartEmpty]);
 
   return (
     <>
@@ -82,10 +71,13 @@ export default function CartIcon() {
         onClick={handleCartClick}
         onMouseEnter={!isCartEmpty && isMounted ? prefetchCartData : undefined}
         onFocus={!isCartEmpty && isMounted ? prefetchCartData : undefined}
-        className={clientButtonClass}
-        disabled={clientButtonDisabled}
-        aria-label="Shopping cart"
-        title={clientButtonTitle}
+        className={`relative p-2 transition-colors ${
+          isCartEmpty 
+            ? 'text-gray-400 cursor-not-allowed opacity-70' 
+            : 'text-gray-700 hover:text-gray-900'
+        }`}
+        disabled={isCartEmpty}
+        title={isCartEmpty ? "Your cart is empty" : "View your cart"}
       >
         <ShoppingCart className="h-6 w-6" />
         {isMounted && totalItems > 0 && (

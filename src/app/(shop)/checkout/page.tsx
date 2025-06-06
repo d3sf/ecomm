@@ -58,9 +58,67 @@ export default function CheckoutPage() {
   const fetchCartItems = useCallback(async () => {
     if (items.length === 0) {
       if (!isOrderComplete) {
-        toast.error('Failed to load cart items');
+        toast.error('Your cart is empty');
         router.push('/');
       }
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const productIds = items.map(item => item.id);
+      
+      const response = await fetch('/api/cart-products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productIds }),
+        cache: 'no-store',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      
+      const { products } = await response.json();
+      
+      if (!products || !Array.isArray(products)) {
+        throw new Error('Invalid products data returned from API');
+      }
+
+      const itemsWithDetails = items.map(item => {
+        const product = products.find((p: any) =>
+          String(p.id) === String(item.id)
+        );
+
+        if (product) {
+          return {
+            ...product,
+            cartQuantity: item.quantity,
+            originalProductId: item.id
+          };
+        }
+        return null;
+      }).filter(Boolean) as CartItem[];
+
+      setCartItems(itemsWithDetails);
+      
+      // Calculate subtotal
+      const total = itemsWithDetails.reduce((sum, item) => {
+        const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
+        return sum + (price * item.cartQuantity);
+      }, 0);
+      
+      setSubtotal(total);
+    } catch (error) {
+      console.error('Error fetching cart items:', error);
+      toast.error('Failed to load cart items');
+      if (!isOrderComplete) {
+        router.push('/');
+      }
+    } finally {
+      setIsLoading(false);
     }
   }, [items, router, isOrderComplete]);
 

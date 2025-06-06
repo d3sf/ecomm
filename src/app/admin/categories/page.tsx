@@ -13,6 +13,7 @@ import { CategoryType } from '@/lib/zodvalidation';
 import { Plus, ListTree, Trash2, Download, Upload } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { TableSkeleton } from '@/components/admin/skeletons';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const CategoriesPage = () => {
   const pathname = usePathname();
@@ -33,6 +34,7 @@ const CategoriesPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
   const itemsPerPage = 10;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,8 +72,8 @@ const CategoriesPage = () => {
       let url = "/api/admin/categories";
       const params = new URLSearchParams();
       
-      if (searchTerm) {
-        params.append("search", searchTerm);
+      if (debouncedSearchTerm) {
+        params.append("search", debouncedSearchTerm);
       }
       
       if (params.toString()) {
@@ -107,7 +109,7 @@ const CategoriesPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentParentId, currentPage, searchTerm]);
+  }, [currentParentId, currentPage, debouncedSearchTerm]);
 
   useEffect(() => {
     fetchCategories();
@@ -177,10 +179,23 @@ const CategoriesPage = () => {
   };
 
   const handleCategoryDelete = async (categoryId: number) => {
+    // Find the category to get its name
+    const categoryToDelete = categories.find(cat => cat.id === categoryId);
+    if (!categoryToDelete) return;
+
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to delete the category "${categoryToDelete.name}"?\n\n` +
+      `This will also delete all subcategories and remove this category from all associated products.\n` +
+      `This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
     try {
       const response = await axios.delete(`/api/admin/categories/${categoryId}`);
       if (response.status === 200) {
-        toast.success("Category deleted successfully");
+        toast.success(`Category "${categoryToDelete.name}" deleted successfully`);
         await fetchCategories();
         setSelectedCategory(undefined);
       } else {
@@ -356,6 +371,26 @@ const CategoriesPage = () => {
             <Trash2 size={20} />
             Delete Selected
           </button>
+        </div>
+      </div>
+
+      {/* Category Statistics */}
+      <div className="mb-6 grid grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700">Total Categories</h3>
+          <p className="text-2xl font-bold text-indigo-600">{allCategories.length}</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700">Parent Categories</h3>
+          <p className="text-2xl font-bold text-blue-600">
+            {allCategories.filter(cat => !cat.parentId).length}
+          </p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700">Subcategories</h3>
+          <p className="text-2xl font-bold text-green-600">
+            {allCategories.filter(cat => cat.parentId).length}
+          </p>
         </div>
       </div>
 

@@ -12,6 +12,24 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   }
 });
 
+// Handle connection cleanup
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
+
+// Add connection cleanup on process termination
+process.on('beforeExit', async () => {
+  await prisma.$disconnect();
+});
+
+// Handle cleanup on uncaught exceptions
+process.on('uncaughtException', async () => {
+  await prisma.$disconnect();
+  process.exit(1);
+});
+
+// Handle cleanup on unhandled rejections
+process.on('unhandledRejection', async () => {
+  await prisma.$disconnect();
+  process.exit(1);
+});

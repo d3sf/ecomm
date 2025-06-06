@@ -53,6 +53,7 @@ export async function POST(request: Request) {
         type,
         categoryId,
         sortOrder: sortOrder || 0,
+        isActive: true,
       },
       include: {
         category: true,

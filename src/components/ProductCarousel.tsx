@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import ProductCard from '@/components/product/ProductCard';
@@ -33,47 +33,55 @@ export default function ProductCarousel({ categoryName, products = [], categoryS
   const [productsPerView, setProductsPerView] = useState(6);
   const [isAnimating, setIsAnimating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const resizeTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Update products per view based on screen size
-  const updateProductsPerView = () => {
+  // Memoize the updateProductsPerView function
+  const updateProductsPerView = useCallback(() => {
     const width = window.innerWidth;
-    if (width < 1024) setProductsPerView(3); // Mobile and tablets
-    else setProductsPerView(6); // Larger screens
-  };
-
-  // Add event listener for window resize using useEffect
-  useEffect(() => {
-    // Initial update
-    updateProductsPerView();
-    
-    // Add resize event listener
-    window.addEventListener('resize', updateProductsPerView);
-    
-    // Cleanup function
-    return () => window.removeEventListener('resize', updateProductsPerView);
+    if (width < 1024) setProductsPerView(3);
+    else setProductsPerView(6);
   }, []);
 
-  const nextSlide = () => {
+  // Add debounced resize event listener
+  useEffect(() => {
+    const handleResize = () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      resizeTimeoutRef.current = setTimeout(updateProductsPerView, 150);
+    };
+
+    updateProductsPerView();
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+    };
+  }, [updateProductsPerView]);
+
+  const nextSlide = useCallback(() => {
     if (currentIndex + productsPerView < products.length && !isAnimating) {
       setIsAnimating(true);
       setCurrentIndex(currentIndex + 1);
       setTimeout(() => setIsAnimating(false), 300);
     }
-  };
+  }, [currentIndex, productsPerView, products.length, isAnimating]);
 
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     if (currentIndex > 0 && !isAnimating) {
       setIsAnimating(true);
       setCurrentIndex(currentIndex - 1);
       setTimeout(() => setIsAnimating(false), 300);
     }
-  };
+  }, [currentIndex, isAnimating]);
 
-  // Convert various image formats to the format expected by ProductCard
-  const formatImages = (images: Product['images']): { url: string; publicId?: string }[] => {
+  // Memoize the formatImages function
+  const formatImages = useCallback((images: Product['images']): { url: string; publicId?: string }[] => {
     if (!images) return [{ url: '/placeholder.png' }];
     
-    // If images is an array (either string[] or ProductImage[])
     if (Array.isArray(images)) {
       return images.map(img => {
         if (typeof img === 'string') return { url: img };
@@ -84,16 +92,14 @@ export default function ProductCarousel({ categoryName, products = [], categoryS
       });
     }
     
-    // If images is a single ProductImage object
     if (typeof images === 'object') {
       if (images.url) return [{ url: images.url, publicId: images.publicId }];
-      // Check for numbered keys
       const firstKey = Object.keys(images)[0];
       return [{ url: images[firstKey] || '/placeholder.png' }];
     }
 
     return [{ url: '/placeholder.png' }];
-  };
+  }, []);
 
   // Guard against empty products array
   if (!products || products.length === 0) {

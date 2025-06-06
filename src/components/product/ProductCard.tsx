@@ -136,7 +136,7 @@ const ProductCard: React.FC<ProductCardProps> = (props) => {
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow w-48">
       {/* Image Section */}
-      <div className="relative h-[140px] w-[140px] mx-auto mt-4 bg-gray-50">
+      <div className="relative h-[140px] w-[140px] mx-auto mt-4">
         <Link href={`/prdn/${slug}/prid/${id}`}>
           <Image
             src={imageUrl}

@@ -86,6 +86,7 @@ const ProductList: React.FC<ProductListProps> = ({
               <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Product</th>
               <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Default Category</th>
               <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Price</th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Quantity</th>
               <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Stock</th>
               <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Published</th>
               <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Actions</th>
@@ -106,13 +107,13 @@ const ProductList: React.FC<ProductListProps> = ({
                   </td>
                   <td className="px-4 py-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 rounded-md bg-white flex items-center justify-center border border-gray-300 shadow-sm overflow-hidden">
+                      <div className="w-14 h-14 rounded-md overflow-hidden border border-gray-200">
                         <Image
                           src={product.images?.[0]?.url || "/placeholder.png"}
                           alt={product.name}
                           width={56}
                           height={56}
-                          className="object-cover w-full h-full"
+                          className="w-full h-full object-contain"
                         />
                       </div>
                       <span className="font-medium">{product.name}</span>
@@ -130,6 +131,9 @@ const ProductList: React.FC<ProductListProps> = ({
                     )}
                   </td>
                   <td className="px-4 py-2 font-medium">₹{product.price}</td>
+                  <td className="px-4 py-2">
+                    <span className="text-sm text-gray-600">{product.quantity || 'N/A'}</span>
+                  </td>
                   <td className="px-4 py-2">
                     <span className={`px-2 py-1 rounded-full text-sm ${
                       isOutOfStock ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"

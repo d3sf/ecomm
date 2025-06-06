@@ -11,6 +11,7 @@ import { ProductType, CategoryType } from "@/lib/zodvalidation";
 import { ImportProgressDialog } from "@/components/admin/ImportProgressDialog";
 import { TableSkeleton } from "@/components/admin/skeletons";
 import SearchBar from "./components/SearchBar";
+import { useDebounce } from '@/hooks/useDebounce';
 
 // Custom hook for mount effect
 const useMountEffect = (effect: () => void) => {
@@ -43,6 +44,8 @@ const ProductsPage = () => {
   const [importStatus, setImportStatus] = useState("");
   const [processedItems, setProcessedItems] = useState(0);
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
+
   const fetchCategories = async () => {
     try {
       const response = await axios.get("/api/categories?getAll=true");
@@ -61,8 +64,8 @@ const ProductsPage = () => {
       
       let url = `/api/products?page=${page}&limit=${itemsPerPage}`;
       
-      if (searchTerm) {
-        url += `&search=${encodeURIComponent(searchTerm)}`;
+      if (debouncedSearchTerm) {
+        url += `&search=${encodeURIComponent(debouncedSearchTerm)}`;
       }
       
       const response = await axios.get(url);
@@ -77,7 +80,7 @@ const ProductsPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, itemsPerPage]);
+  }, [debouncedSearchTerm, itemsPerPage]);
 
   // Initial data loading
   useMountEffect(() => {
@@ -96,7 +99,7 @@ const ProductsPage = () => {
     // Skip the initial render - already handled by useMountEffect
     if (!isMounted.current) return;
 
-    if (searchTerm) {
+    if (debouncedSearchTerm) {
       // When search term changes, reset to page 1
       setCurrentPage(1);
       fetchProducts(1);
@@ -104,7 +107,7 @@ const ProductsPage = () => {
       // When only page changes
       fetchProducts(currentPage);
     }
-  }, [currentPage, searchTerm, fetchProducts]);
+  }, [currentPage, debouncedSearchTerm, fetchProducts]);
 
   const handleSubmit = async (product: ProductType) => {
     try {
@@ -326,6 +329,13 @@ const ProductsPage = () => {
           setEditingProduct(undefined);
         }}
         title={editingProduct ? "Edit Product" : "Add Product"}
+        showUpdateButton={!!editingProduct}
+        onUpdate={() => {
+          const form = document.querySelector('form');
+          if (form) {
+            form.requestSubmit();
+          }
+        }}
       >
         <ProductForm
           initialData={editingProduct}

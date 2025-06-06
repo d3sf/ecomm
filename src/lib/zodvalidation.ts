@@ -29,6 +29,7 @@ interface CategorySchemaType {
   } | null;
   published?: boolean;
   children?: CategorySchemaType[];
+  productCount?: number;
 }
 
 export const CategorySchema: z.ZodType<CategorySchemaType> = CategorySchemaBase.extend({

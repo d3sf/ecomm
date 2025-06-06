@@ -6,6 +6,7 @@ import axios, { AxiosError } from "axios";
 import { ChevronDown, Eye, FileText, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { TableSkeleton } from "@/components/admin/skeletons";
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Order {
   id: number;
@@ -57,11 +58,12 @@ export default function OrdersList() {
   const ordersPerPage = 10;
   const router = useRouter();
   const { status } = useSession();
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
 
   const fetchOrders = useCallback(async () => {
     try {
       const response = await axios.get(
-        `/api/admin/orders?page=${currentPage}&limit=${ordersPerPage}${searchTerm ? `&search=${searchTerm}` : ''}`
+        `/api/admin/orders?page=${currentPage}&limit=${ordersPerPage}${debouncedSearchTerm ? `&search=${debouncedSearchTerm}` : ''}`
       );
       setOrders(response.data.orders);
       setTotalPages(response.data.pagination.pages);
@@ -78,7 +80,7 @@ export default function OrdersList() {
     } finally {
       setIsLoading(false);
     }
-  }, [router, searchTerm, currentPage]);
+  }, [router, debouncedSearchTerm, currentPage]);
 
   useEffect(() => {
     if (status === "unauthenticated") {

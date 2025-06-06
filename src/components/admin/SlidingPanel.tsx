@@ -8,9 +8,18 @@ interface SlidingPanelProps {
   onClose: () => void;
   children: React.ReactNode;
   title: string;
+  showUpdateButton?: boolean;
+  onUpdate?: () => void;
 }
 
-const SlidingPanel: React.FC<SlidingPanelProps> = ({ isOpen, onClose, children, title }) => {
+const SlidingPanel: React.FC<SlidingPanelProps> = ({ 
+  isOpen, 
+  onClose, 
+  children, 
+  title,
+  showUpdateButton = false,
+  onUpdate
+}) => {
   // Handle body scroll locking using useEffect
   useEffect(() => {
     // Only add the class if running in the browser
@@ -57,13 +66,23 @@ const SlidingPanel: React.FC<SlidingPanelProps> = ({ isOpen, onClose, children, 
         <div className="p-6 h-full flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h2 id="panel-title" className="text-xl font-semibold">{title}</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100"
-              aria-label="Close panel"
-            >
-              ✕
-            </button>
+            <div className="flex items-center gap-4">
+              {showUpdateButton && onUpdate && (
+                <button
+                  onClick={onUpdate}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+                >
+                  Update
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100"
+                aria-label="Close panel"
+              >
+                ✕
+              </button>
+            </div>
           </div>
           <div className="flex-1 overflow-y-auto">
             {children}

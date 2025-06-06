@@ -30,7 +30,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
   const previousItemsRef = useRef<typeof items>([]);
   const cartDataFetchedRef = useRef(false);
   
-  // Calculate subtotal using useMemo instead of useState + useEffect
+  // Calculate subtotal using useMemo
   const subtotal = useMemo(() => {
     const visibleItems = cartItems.filter(item => item.cartQuantity > 0);
     
@@ -46,9 +46,36 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
     }, 0);
   }, [cartItems]);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const handleDirectCartUpdate = useCallback((productId: string | number, quantity: number, item: CartItemWithDetails) => {
+    if (item && typeof item === 'object') {
+      // Update local state
+      setCartItems(prevItems => 
+        prevItems.map(cartItem => 
+          String(cartItem.originalProductId) === String(productId)
+            ? { ...cartItem, cartQuantity: quantity }
+            : cartItem
+        )
+      );
+      
+      // Update Redux store
+      addItem({
+        id: String(productId),
+        name: item.name,
+        price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
+        quantity: quantity,
+        image: item.images?.[0]?.url || "/placeholder.png"
+      });
+    }
+  }, [addItem]);
+
+  const handleProceedToCheckout = useCallback(() => {
+    if (!items || items.length === 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
+    onClose();
+    router.push('/checkout');
+  }, [items, onClose, router]);
 
   const fetchCartItems = useCallback(async () => {
     if (!items || items.length === 0) {
@@ -60,17 +87,15 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
     try {
       setIsLoading(true);
       
-      // Extract product IDs from cart items
       const productIds = items.map(item => item.id);
       
-      // Use the dedicated cart-products API to fetch only the products in the cart
       const response = await fetch('/api/cart-products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ productIds }),
-        cache: 'no-store', // Prevent caching
+        cache: 'no-store',
       });
       
       if (!response.ok) {
@@ -111,86 +136,44 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
     }
   }, [items]);
 
-  const updateCartItems = useCallback(() => {
-    if (cartItems.length > 0) {
-      const updatedItems = cartItems.map(cartItem => {
-        const matchingItem = items.find(item => 
-          String(item.id) === String(cartItem.originalProductId)
-        );
-        
-        if (matchingItem) {
-          return {
-            ...cartItem,
-            cartQuantity: matchingItem.quantity
-          };
-        } 
-        return cartItem;
-      });
-      
-      setCartItems(updatedItems);
-    }
-    
+  // Set mounted state only once
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Update cart items when items change
+  useEffect(() => {
     const itemsChanged = JSON.stringify(items) !== JSON.stringify(previousItemsRef.current);
+    
     if (itemsChanged) {
       previousItemsRef.current = [...items];
       
-      if (isOpen) {
+      if (isOpen || (!cartDataFetchedRef.current && items.length > 0)) {
         fetchCartItems();
-      } else if (!cartDataFetchedRef.current && items.length > 0) {
-        fetchCartItems();
+      } else {
+        // Just update quantities without fetching
+        setCartItems(prevItems => 
+          prevItems.map(cartItem => {
+            const matchingItem = items.find(item => 
+              String(item.id) === String(cartItem.originalProductId)
+            );
+            return matchingItem 
+              ? { ...cartItem, cartQuantity: matchingItem.quantity }
+              : cartItem;
+          })
+        );
       }
     }
-  }, [cartItems, items, isOpen, fetchCartItems]);
+  }, [items, isOpen, fetchCartItems]);
 
+  // Fetch items when modal opens
   useEffect(() => {
-    updateCartItems();
-  }, [updateCartItems]);
-
-  // When modal opens, make sure we have the latest data
-  useEffect(() => {
-    if (isOpen) {
+    if (isOpen && items.length > 0) {
       fetchCartItems();
     }
-  }, [isOpen, fetchCartItems]);
-
-  const handleProceedToCheckout = useCallback(() => {
-    if (!items || items.length === 0) {
-      // Show toast message when user explicitly tries to proceed with empty cart
-      toast.error('Your cart is empty');
-      return;
-    }
-    onClose();
-    router.push('/checkout');
-  }, [items, onClose, router]);
+  }, [isOpen, items.length, fetchCartItems]);
 
   if (!isMounted) return null;
-
-  // Handle direct update when adding to cart
-  const handleDirectCartUpdate = (productId: string | number, quantity: number, item: CartItemWithDetails) => {
-    if (item && typeof item === 'object') {
-      // First update the local cartItems for immediate UI update
-      setCartItems(prevItems => 
-        prevItems.map(cartItem => {
-          if (String(cartItem.originalProductId) === String(productId)) {
-            return {
-              ...cartItem,
-              cartQuantity: quantity
-            };
-          }
-          return cartItem;
-        })
-      );
-      
-      // Then update the Redux store
-      addItem({
-        id: String(productId),
-        name: item.name,
-        price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
-        quantity: quantity,
-        image: item.images?.[0]?.url || "/placeholder.png"
-      });
-    }
-  };
 
   return (
     <div
@@ -316,9 +299,10 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                   onClick={handleProceedToCheckout}
                   className="w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white transition-all duration-200 hover:shadow-md"
                   style={{ 
-                    background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
-                    backgroundSize: '200% 200%',
-                    animation: 'gradient-x 15s ease infinite'
+                    backgroundImage: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: 'cover'
                   }}
                 >
                   Checkout

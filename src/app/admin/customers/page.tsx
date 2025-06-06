@@ -7,6 +7,7 @@ import { toast } from "react-hot-toast";
 import CustomerList from "./components/CustomerList";
 import Button from "@/components/ui/Button";
 import { TableSkeleton } from "@/components/admin/skeletons";
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Customer {
   id: number;
@@ -26,11 +27,12 @@ export default function CustomersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCustomers, setTotalCustomers] = useState(0);
   const customersPerPage = 10;
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
 
   const fetchCustomers = useCallback(async () => {
     try {
       const response = await fetch(
-        `/api/admin/customers?page=${currentPage}&limit=${customersPerPage}${searchTerm ? `&search=${searchTerm}` : ''}`
+        `/api/admin/customers?page=${currentPage}&limit=${customersPerPage}${debouncedSearchTerm ? `&search=${debouncedSearchTerm}` : ''}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch customers");
@@ -45,7 +47,7 @@ export default function CustomersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, searchTerm]);
+  }, [currentPage, debouncedSearchTerm]);
 
   useEffect(() => {
     fetchCustomers();
