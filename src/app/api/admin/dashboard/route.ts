@@ -11,11 +11,11 @@ interface BestSellingProduct {
   };
 }
 
-interface Product {
+interface ProductWithImages {
   id: number;
   name: string;
   price: number;
-  images: Prisma.JsonValue;
+  images: { url: string; publicId: string }[] | null;
 }
 
 export async function GET() {
@@ -77,15 +77,14 @@ export async function GET() {
 
     // Combine product details with sales data
     const bestSellers = bestSellingProducts.map((item: BestSellingProduct) => {
-      const product = products.find((p: Product) => p.id === item.productId);
+      const product = products.find((p) => p.id === item.productId) as ProductWithImages | undefined;
+      const images = product?.images as { url: string; publicId: string }[] | null;
       return {
         id: item.productId,
         name: product?.name || 'Unknown Product',
         quantity: item._sum.quantity || 0,
         price: product?.price || 0,
-        image: product?.images && Array.isArray(product.images) && product.images.length > 0 
-          ? product.images[0] 
-          : null
+        image: images && images.length > 0 ? images[0].url : null
       };
     });
 

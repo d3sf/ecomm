@@ -138,13 +138,15 @@ export default function BestSellingProducts() {
         <div className="grid gap-3">
           {data.bestSellingProducts.map((product) => (
             <div key={product.id} className="flex items-center border-b pb-2">
-              <div className="w-12 h-12 relative mr-3 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
+              <div className="w-16 h-16 relative mr-3 rounded-md overflow-hidden flex-shrink-0 border border-black">
                 {typeof product.image === 'string' && product.image.length > 0 ? (
                   <Image
                     src={product.image}
                     alt={product.name}
                     fill
-                    className="object-cover"
+                    sizes="(max-width: 64px) 100vw, 64px"
+                    className="object-contain"
+                    style={{ padding: '4px' }}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -152,7 +154,9 @@ export default function BestSellingProducts() {
                       src="/placeholder.png"
                       alt="No image"
                       fill
-                      className="object-cover"
+                      sizes="(max-width: 64px) 100vw, 64px"
+                      className="object-contain"
+                      style={{ padding: '4px' }}
                     />
                   </div>
                 )}

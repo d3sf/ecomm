@@ -99,14 +99,8 @@ const ProductsPage = () => {
     // Skip the initial render - already handled by useMountEffect
     if (!isMounted.current) return;
 
-    if (debouncedSearchTerm) {
-      // When search term changes, reset to page 1
-      setCurrentPage(1);
-      fetchProducts(1);
-    } else {
-      // When only page changes
-      fetchProducts(currentPage);
-    }
+    // Always fetch with current search term and page
+    fetchProducts(currentPageRef.current);
   }, [currentPage, debouncedSearchTerm, fetchProducts]);
 
   const handleSubmit = async (product: ProductType) => {
@@ -157,12 +151,15 @@ const ProductsPage = () => {
   const handlePageChange = (page: number) => {
     if (page !== currentPage) {
       setCurrentPage(page);
+      currentPageRef.current = page;
     }
   };
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    // We don't set currentPage here - it's handled in the effect
+    // Reset to page 1 when search term changes
+    setCurrentPage(1);
+    currentPageRef.current = 1;
   };
 
   const handleExport = async () => {
