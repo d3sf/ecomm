@@ -240,9 +240,9 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                         <Image
                           src={item.images?.[0]?.url || "/placeholder.png"}
                           alt={item.name}
-                          width={96}
-                          height={96}
-                          className="h-full w-full object-cover object-center"
+                          width={80}
+                          height={80}
+                          className="h-full w-full object-contain p-1"
                         />
                       </div>
 

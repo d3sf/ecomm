@@ -42,7 +42,7 @@ export default function OrderSummary({ items, subtotal }: OrderSummaryProps) {
                       alt={item.name}
                       width={96}
                       height={96}
-                      className="h-full w-full object-cover object-center"
+                      className="h-full w-full object-contain p-1"
                     />
                   ) : (
                     <div className="h-full w-full bg-gray-100 flex items-center justify-center">

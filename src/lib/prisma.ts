@@ -17,19 +17,39 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
 
-// Add connection cleanup on process termination
-process.on('beforeExit', async () => {
+// Single cleanup function
+const cleanup = async () => {
   await prisma.$disconnect();
-});
+};
 
-// Handle cleanup on uncaught exceptions
-process.on('uncaughtException', async () => {
-  await prisma.$disconnect();
-  process.exit(1);
-});
+// Add event listeners only if they haven't been added before
+if (!process.listeners('beforeExit').includes(cleanup)) {
+  process.on('beforeExit', cleanup);
+}
 
-// Handle cleanup on unhandled rejections
-process.on('unhandledRejection', async () => {
-  await prisma.$disconnect();
-  process.exit(1);
-});
+if (!process.listeners('uncaughtException').includes(cleanup)) {
+  process.on('uncaughtException', async () => {
+    await cleanup();
+    process.exit(1);
+  });
+}
+
+if (!process.listeners('unhandledRejection').includes(cleanup)) {
+  process.on('unhandledRejection', async () => {
+    await cleanup();
+    process.exit(1);
+  });
+}
+
+// Cleanup function for Next.js development mode
+if (process.env.NODE_ENV === 'development') {
+  const cleanupDev = async () => {
+    await cleanup();
+    process.removeListener('beforeExit', cleanup);
+    process.removeListener('uncaughtException', cleanup);
+    process.removeListener('unhandledRejection', cleanup);
+  };
+
+  process.on('SIGTERM', cleanupDev);
+  process.on('SIGINT', cleanupDev);
+}
