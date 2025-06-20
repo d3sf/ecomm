@@ -15,39 +15,31 @@ interface CartState {
   error: string | null
 }
 
-// Default empty state
-const defaultState: CartState = {
-  items: [],
-  total: 0,
-  loading: false,
-  error: null
+const calculateTotal = (items: CartItem[]): number => {
+  return items.reduce((total, item) => total + (item.price * item.quantity), 0)
 }
 
-// Load cart from localStorage if available
 const loadCartFromStorage = (): CartState => {
   if (typeof window === 'undefined') {
-    return { ...defaultState }
+    return {
+      items: [],
+      total: 0,
+      loading: false,
+      error: null
+    }
   }
 
   try {
     const storedCart = localStorage.getItem('cart')
     if (storedCart) {
-      const parsedCart = JSON.parse(storedCart) as Partial<CartState>
-      
-      // Ensure we only load items with positive quantity
+      const parsedCart = JSON.parse(storedCart)
       const validItems = Array.isArray(parsedCart.items) 
-        ? parsedCart.items.filter(item => item && item.quantity > 0) 
+        ? parsedCart.items.filter((item: CartItem) => item && item.quantity > 0)
         : []
-      
-      // Recalculate total based on valid items
-      const calculatedTotal = validItems.reduce(
-        (total, item) => total + (item.price * item.quantity), 
-        0
-      )
       
       return {
         items: validItems,
-        total: calculatedTotal,
+        total: calculateTotal(validItems),
         loading: false,
         error: null
       }
@@ -56,18 +48,20 @@ const loadCartFromStorage = (): CartState => {
     console.error('Failed to load cart from localStorage:', error)
   }
 
-  return { ...defaultState }
+  return {
+    items: [],
+    total: 0,
+    loading: false,
+    error: null
+  }
 }
 
-const initialState: CartState = loadCartFromStorage()
-
-// Helper function to save cart to localStorage
 const saveCartToStorage = (state: CartState) => {
   if (typeof window !== 'undefined') {
     try {
       localStorage.setItem('cart', JSON.stringify({
-        items: state.items || [],
-        total: state.total || 0
+        items: state.items,
+        total: state.total
       }))
     } catch (error) {
       console.error('Failed to save cart to localStorage:', error)
@@ -75,49 +69,33 @@ const saveCartToStorage = (state: CartState) => {
   }
 }
 
+const initialState: CartState = loadCartFromStorage()
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
     addToCart: (state, action: PayloadAction<CartItem>) => {
-      // Ensure items array exists
-      if (!state.items) {
-        state.items = []
+      const existingItemIndex = state.items.findIndex(item => item.id === action.payload.id)
+      
+      if (existingItemIndex >= 0) {
+        state.items[existingItemIndex].quantity = action.payload.quantity
+      } else {
+        state.items.push(action.payload)
       }
       
-      // Only add/update items with positive quantity
-      if (action.payload.quantity > 0) {
-        const existingItem = state.items.find(item => item.id === action.payload.id)
-        if (existingItem) {
-          existingItem.quantity = action.payload.quantity
-        } else {
-          state.items.push(action.payload)
-        }
-        // Clean up any items with 0 quantity
-        state.items = state.items.filter(item => item.quantity > 0)
-        state.total = state.items.reduce((total, item) => total + (item.price * item.quantity), 0)
-        saveCartToStorage(state)
-      }
+      state.items = state.items.filter(item => item.quantity > 0)
+      state.total = calculateTotal(state.items)
+      saveCartToStorage(state)
     },
     removeFromCart: (state, action: PayloadAction<string>) => {
-      if (!state.items) {
-        state.items = []
-        return
-      }
-      
       state.items = state.items.filter(item => item.id !== action.payload)
-      state.total = state.items.reduce((total, item) => total + (item.price * item.quantity), 0)
+      state.total = calculateTotal(state.items)
       saveCartToStorage(state)
     },
     updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
-      if (!state.items) {
-        state.items = []
-        return
-      }
-      
       const { id, quantity } = action.payload
       
-      // If quantity is 0 or negative, remove the item
       if (quantity <= 0) {
         state.items = state.items.filter(item => item.id !== id)
       } else {
@@ -127,9 +105,7 @@ const cartSlice = createSlice({
         }
       }
       
-      // Clean up any items with 0 quantity
-      state.items = state.items.filter(item => item.quantity > 0)
-      state.total = state.items.reduce((total, item) => total + (item.price * item.quantity), 0)
+      state.total = calculateTotal(state.items)
       saveCartToStorage(state)
     },
     clearCart: (state) => {

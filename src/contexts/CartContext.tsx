@@ -20,7 +20,6 @@ interface CartContextType {
   updateItemQuantity: (id: string, quantity: number) => void
   clearCartItems: () => void
   total: number
-  // For backward compatibility with existing components
   addToCart: (productId: string | number, quantity: number) => void
   getItemQuantity: (productId: string | number) => number
 }
@@ -52,14 +51,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const updateItemQuantity = (id: string, quantity: number) => {
     try {
       if (quantity <= 0) {
-        // If quantity becomes 0 or negative, remove the item immediately
         dispatch(removeFromCart(id))
-        // Also clean up any other items with 0 quantity
-        items.forEach(item => {
-          if (item.quantity <= 0) {
-            dispatch(removeFromCart(item.id))
-          }
-        })
       } else {
         dispatch(updateQuantity({ id, quantity }))
       }
@@ -78,40 +70,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // For backward compatibility with existing components
   const addToCart = (productId: string | number, quantity: number) => {
     try {
       const stringId = String(productId)
-      const existingItem = items?.find(item => item.id === stringId)
+      const existingItem = items.find(item => item.id === stringId)
       
       if (quantity <= 0) {
-        // If quantity is 0 or negative, remove the item
         dispatch(removeFromCart(stringId))
       } else if (existingItem) {
-        // If item exists, update its quantity
         dispatch(updateQuantity({ id: stringId, quantity }))
-      } else {
-        // This will likely never be called as we're now handling adding new items directly
-        // through the addItem function, but keeping for backward compatibility
-        console.warn('Using legacy addToCart. Consider using addItem with full product details.')
       }
-      
-      // Ensure all zero quantity items are properly removed from cart
-      items.forEach(item => {
-        if (item.quantity <= 0) {
-          dispatch(removeFromCart(item.id))
-        }
-      })
     } catch (error) {
       console.error('Error updating cart:', error)
       toast.error('Failed to update cart')
     }
   }
 
-  const getItemQuantity = (productId: string | number) => {
-    if (!items || !Array.isArray(items)) return 0
+  const getItemQuantity = (productId: string | number): number => {
     const item = items.find(item => item.id === String(productId))
-    return item ? item.quantity : 0
+    return item?.quantity || 0
   }
 
   return (
@@ -123,7 +100,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         updateItemQuantity,
         clearCartItems,
         total,
-        // For backward compatibility
         addToCart,
         getItemQuantity,
       }}
