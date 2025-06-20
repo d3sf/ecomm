@@ -17,29 +17,28 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
 
-// Single cleanup function
+// Single cleanup function that handles all cases
 const cleanup = async () => {
   await prisma.$disconnect();
 };
 
-// Add event listeners only if they haven't been added before
-if (!process.listeners('beforeExit').includes(cleanup)) {
-  process.on('beforeExit', cleanup);
-}
+// Remove any existing listeners first
+['beforeExit', 'SIGTERM', 'SIGINT', 'uncaughtException', 'unhandledRejection'].forEach(event => {
+  process.removeAllListeners(event);
+});
 
-if (!process.listeners('uncaughtException').includes(cleanup)) {
-  process.on('uncaughtException', async () => {
-    await cleanup();
-    process.exit(1);
-  });
-}
-
-if (!process.listeners('unhandledRejection').includes(cleanup)) {
-  process.on('unhandledRejection', async () => {
-    await cleanup();
-    process.exit(1);
-  });
-}
+// Add single listener for each event
+process.once('beforeExit', cleanup);
+process.once('SIGTERM', cleanup);
+process.once('SIGINT', cleanup);
+process.once('uncaughtException', async (error) => {
+  await cleanup();
+  process.exit(1);
+});
+process.once('unhandledRejection', async (error) => {
+  await cleanup();
+  process.exit(1);
+});
 
 // Cleanup function for Next.js development mode
 if (process.env.NODE_ENV === 'development') {

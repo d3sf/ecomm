@@ -56,8 +56,7 @@ export const shopAuthOptions: NextAuthOptions = {
             email: user.email || undefined,
           } as ShopUser;
         } catch (error) {
-          console.error("Authorization error:", error);
-          return null;
+          throw error;
         }
       }
     }),
@@ -98,8 +97,7 @@ export const shopAuthOptions: NextAuthOptions = {
             email: user.email || undefined,
           } as ShopUser;
         } catch (error) {
-          console.error("Error authorizing user:", error);
-          return null;
+          throw error;
         }
       }
     })
@@ -145,7 +143,6 @@ export const shopAuthOptions: NextAuthOptions = {
             }
           }
         } catch (error) {
-          console.error("Error fetching user data:", error);
           // Fallback to token data if database fetch fails
           session.user.id = token.id as string;
           session.user.type = token.type as "user";

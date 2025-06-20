@@ -166,6 +166,14 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
     }
   }, [items, isOpen, fetchCartItems]);
 
+  // Watch for empty cart and trigger onClose in useEffect
+  useEffect(() => {
+    const hasItems = items.some(item => item.quantity > 0);
+    if (!hasItems && isOpen) {
+      onClose();
+    }
+  }, [items, isOpen, onClose]);
+
   // Fetch items when modal opens
   useEffect(() => {
     if (isOpen && items.length > 0) {
@@ -297,7 +305,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
               <div className="mt-6">
                 <button
                   onClick={handleProceedToCheckout}
-                  className="w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white transition-all duration-200 hover:shadow-md"
+                  className="w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white transition-all duration-200 hover:shadow-md"
                   style={{ 
                     backgroundImage: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
                     backgroundPosition: 'center',
@@ -305,7 +313,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                     backgroundSize: 'cover'
                   }}
                 >
-                  Checkout
+                  Proceed to Checkout
                 </button>
               </div>
               <div className="mt-6 flex justify-center text-center text-sm">

@@ -10,33 +10,32 @@ import OrderDetailsView from "@/components/order/OrderDetailsView";
 import AddressCard from "@/components/address/AddressCard";
 import AddressForm from "@/components/address/AddressForm";
 import { Order } from "@/types/order";
-import { User, UserCircle } from "lucide-react";
-
-interface Address {
-  id: number;
-  fullName: string;
-  phoneNumber: string;
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  isDefault: boolean;
-  addressLabel: "HOME" | "WORK" | "OTHER";
-  customLabel?: string;
-}
+import { Address } from "@/types/address";
+import { User, UserCircle, X } from "lucide-react";
+import { useAddresses } from "@/contexts/AddressContext";
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 export default function AccountPageContent() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "profile");
   const [orders, setOrders] = useState<Order[]>([]);
-  const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState(session?.user?.name || "");
+  
+  const { 
+    addresses, 
+    isLoading: isLoadingAddresses, 
+    addAddress, 
+    updateAddress, 
+    deleteAddress, 
+    setDefaultAddress 
+  } = useAddresses();
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -70,29 +69,13 @@ export default function AccountPageContent() {
     }
   }, []);
 
-  const fetchAddresses = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch("/api/addresses");
-      if (!response.ok) throw new Error("Failed to fetch addresses");
-      const data = await response.json();
-      setAddresses(data);
-    } catch {
-      toast.error("Failed to fetch addresses");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     if (status === "authenticated") {
       if (activeTab === "orders") {
         fetchOrders();
-      } else if (activeTab === "addresses") {
-        fetchAddresses();
       }
     }
-  }, [status, activeTab, fetchOrders, fetchAddresses]);
+  }, [status, activeTab, fetchOrders]);
 
   const handleViewOrder = async (orderId: string) => {
     try {
@@ -134,67 +117,61 @@ export default function AccountPageContent() {
     setIsAddingAddress(true);
   };
 
-  const handleEditAddress = (address: Address) => {
-    setEditingAddress(address);
-  };
-
   const handleEditAddressById = (id: number) => {
     const address = addresses.find(addr => addr.id === id);
     if (address) {
       setEditingAddress(address);
-    }
-  };
-
-  const handleDeleteAddress = async (id: number) => {
-    try {
-      const response = await fetch(`/api/addresses/${id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error("Failed to delete address");
-      await fetchAddresses();
-      toast.success("Address deleted successfully");
-    } catch {
-      toast.error("Failed to delete address");
-    }
-  };
-
-  const handleSetDefaultAddress = async (id: number) => {
-    try {
-      const response = await fetch(`/api/addresses?id=${id}`, {
-        method: "PATCH",
-      });
-      if (!response.ok) throw new Error("Failed to set default address");
-      await fetchAddresses();
-      toast.success("Default address updated");
-    } catch {
-      toast.error("Failed to set default address");
+      setIsAddingAddress(true);
     }
   };
 
   const handleSaveAddress = async (address: Omit<Address, "id"> & { id?: number }) => {
     try {
-      const url = address.id ? `/api/addresses/update?id=${address.id}` : "/api/addresses";
-      const method = address.id ? "PUT" : "POST";
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(address),
-      });
-      if (!response.ok) throw new Error("Failed to save address");
-      await fetchAddresses();
+      if (address.id) {
+        await updateAddress(address as Address);
+      } else {
+        await addAddress(address as Address);
+      }
       setIsAddingAddress(false);
       setEditingAddress(null);
-      toast.success(address.id ? "Address updated" : "Address added");
     } catch {
-      toast.error("Failed to save address");
+      // Error is handled in the context
     }
   };
 
   const handleCancelAddress = () => {
     setIsAddingAddress(false);
     setEditingAddress(null);
+  };
+
+  const handleUpdateName = async () => {
+    if (!newName.trim()) {
+      toast.error("Name cannot be empty");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: newName.trim() }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update name");
+      }
+
+      await update();
+      setIsEditingName(false);
+      toast.success("Name updated successfully");
+    } catch (error) {
+      toast.error("Failed to update name");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (status === "loading") {
@@ -229,15 +206,43 @@ export default function AccountPageContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                  <p className="text-gray-900">{session?.user?.name}</p>
+                  {isEditingName ? (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        className="flex-1 p-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Enter your name"
+                      />
+                      <button
+                        onClick={handleUpdateName}
+                        disabled={isLoading}
+                        className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsEditingName(false);
+                          setNewName(session?.user?.name || "");
+                        }}
+                        className="p-1 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-gray-900">{session?.user?.name}</p>
+                  )}
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                   <p className="text-gray-900">{session?.user?.email}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Account Type</label>
-                  <p className="text-gray-900">Customer Account</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  <p className="text-gray-900">{session?.user?.phone || "-"}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
@@ -254,10 +259,12 @@ export default function AccountPageContent() {
 
             <div className="mt-6 flex justify-end">
               <button
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                onClick={() => setIsEditingName(true)}
+                disabled={isEditingName}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 <UserCircle className="w-4 h-4 mr-2" />
-                Edit Profile
+                Edit Name
               </button>
             </div>
           </div>
@@ -314,9 +321,9 @@ export default function AccountPageContent() {
                     Add New Address
                   </button>
                 </div>
-                {isLoading ? (
+                {isLoadingAddresses ? (
                   <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+                    <LoadingSpinner size="lg" />
                   </div>
                 ) : addresses.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -325,8 +332,8 @@ export default function AccountPageContent() {
                         key={address.id}
                         address={address}
                         onEdit={handleEditAddressById}
-                        onDelete={handleDeleteAddress}
-                        onSetDefault={handleSetDefaultAddress}
+                        onDelete={deleteAddress}
+                        onSetDefault={setDefaultAddress}
                       />
                     ))}
                   </div>

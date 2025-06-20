@@ -61,8 +61,7 @@ export const adminAuthOptions: NextAuthOptions = {
             role: admin.role
           } as AdminUser;
         } catch (error) {
-          console.error("Authorization error:", error);
-          return null;
+          throw error;
         }
       }
     })
@@ -97,7 +96,6 @@ export const adminAuthOptions: NextAuthOptions = {
         }
         return true;
       } catch (error) {
-        console.error("Sign in error:", error);
         return false;
       }
     },
@@ -132,7 +130,6 @@ export const adminAuthOptions: NextAuthOptions = {
             }
           }
         } catch (error) {
-          console.error("Error fetching user data:", error);
           // Fallback to token data if database fetch fails
           session.user.id = token.id as string;
           session.user.type = token.type;

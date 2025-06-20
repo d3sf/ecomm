@@ -1,16 +1,24 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "react-hot-toast";
+import Script from "next/script";
 import AddressSelection from "@/components/checkout/AddressSelection";
 import PaymentMethodSelection from "@/components/checkout/PaymentMethodSelection";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import CheckoutSteps from "@/components/checkout/CheckoutSteps";
-// import RazorpayPayment from "@/components/checkout/RazorpayPayment";
+import RazorpayPayment from "@/components/checkout/RazorpayPayment";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+
+// Add Razorpay type
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 const steps = ["Address", "Payment", "Review"];
 
@@ -23,16 +31,15 @@ interface CartItem {
   originalProductId: string | number;
 }
 
-// Remove or comment out PaymentVerificationData interface since it's not needed
-// interface PaymentVerificationData {
-//   success: boolean;
-//   message: string;
-//   order: {
-//     razorpay_payment_id: string;
-//     razorpay_order_id: string;
-//     razorpay_signature: string;
-//   };
-// }
+interface PaymentVerificationData {
+  success: boolean;
+  message: string;
+  order: {
+    razorpay_payment_id: string;
+    razorpay_order_id: string;
+    razorpay_signature: string;
+  };
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -48,6 +55,18 @@ export default function CheckoutPage() {
   const [orderId, setOrderId] = useState<number | null>(null);
   const [isOrderComplete, setIsOrderComplete] = useState(false);
 
+  // Add canProceed logic
+  const canProceed = useMemo(() => {
+    switch (currentStep) {
+      case 0: // Address step
+        return !!selectedAddressId;
+      case 1: // Payment step
+        return !!paymentMethod;
+      default:
+        return true;
+    }
+  }, [currentStep, selectedAddressId, paymentMethod]);
+
   // Check if user is authenticated
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -56,11 +75,14 @@ export default function CheckoutPage() {
   }, [status, router]);
 
   const fetchCartItems = useCallback(async () => {
+    if (items.length === 0 && !isOrderComplete) {
+      toast.error('Your cart is empty');
+      router.push('/');
+      setIsLoading(false);
+      return;
+    }
+
     if (items.length === 0) {
-      if (!isOrderComplete) {
-        toast.error('Your cart is empty');
-        router.push('/');
-      }
       setIsLoading(false);
       return;
     }
@@ -126,48 +148,31 @@ export default function CheckoutPage() {
     fetchCartItems();
   }, [fetchCartItems]);
 
-  const handleNextStep = () => {
-    if (currentStep === 0 && !selectedAddressId) {
-      toast.error('Please select a shipping address');
-      return;
-    }
-
-    if (currentStep === 1 && !paymentMethod) {
-      toast.error('Please select a payment method');
-      return;
-    }
-
-    // Remove Razorpay check since it's not an option anymore
-    // if (currentStep === 1 && paymentMethod === 'RAZORPAY') {
-    //   toast.error('Razorpay payments are currently unavailable');
-    //   return;
-    // }
-
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
   const handlePreviousStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
 
+  const handleNextStep = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
   const handleCreateOrder = async () => {
-    if (!session?.user) {
-      toast.error('Please sign in to checkout');
-      router.push('/login');
+    if (!selectedAddressId) {
+      toast.error('Please select a shipping address');
       return;
     }
 
-    if (!selectedAddressId) {
-      toast.error('Please select a shipping address');
-      setCurrentStep(0);
+    if (!paymentMethod) {
+      toast.error('Please select a payment method');
       return;
     }
 
     setIsSubmitting(true);
+
     try {
       const formattedItems = cartItems.map(item => ({
         productId: item.originalProductId,
@@ -194,40 +199,27 @@ export default function CheckoutPage() {
         throw new Error(data.error || 'Failed to process checkout');
       }
 
-      setOrderId(data.id);
-
-      // Since Razorpay is removed, only handle COD
-      // Mark order as complete to prevent empty cart message
-      setIsOrderComplete(true);
-      // Show success message
-      toast.success('Order placed successfully!');
-      // Clear cart
-      clearCart();
-      // Navigate to account page with orders section
-      router.push("/account?tab=orders");
+      // Return the order ID for Razorpay verification
+      return data.id;
     } catch (error) {
       console.error('Checkout error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to process checkout');
+      throw error;
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handlePlaceOrder = async () => {
-    // Only COD is available now
-    handleCreateOrder();
+  // Add payment success/error handlers
+  const handlePaymentSuccess = async (paymentData: PaymentVerificationData) => {
+    setIsOrderComplete(true);
+    clearCart();
+    toast.success('Payment successful! Order placed.');
+    router.replace("/account?tab=orders");
   };
 
-  // Remove payment success/error handlers since they're not needed
-  // const handlePaymentSuccess = (paymentData: PaymentVerificationData) => {
-  //   clearCart();
-  //   toast.success(`Payment successful! ${paymentData.message}`);
-  //   router.push("/account?tab=orders");
-  // };
-
-  // const handlePaymentError = (error: Error) => {
-  //   toast.error(`Payment failed: ${error.message}`);
-  // };
+  const handlePaymentError = (error: Error) => {
+    toast.error(`Payment failed: ${error.message}`);
+  };
 
   if (status === "loading" || isLoading) {
     return (
@@ -238,91 +230,134 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-8">Checkout</h1>
-        
-        <div className="mb-8">
-          <CheckoutSteps steps={steps} currentStep={currentStep} />
-        </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Script
+        id="razorpay-checkout-js"
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        onError={() => {
+          toast.error("Failed to load payment system");
+        }}
+      />
+      <h1 className="text-3xl font-extrabold text-gray-900 mb-8">Checkout</h1>
+      
+      <div className="mb-8">
+        <CheckoutSteps steps={steps} currentStep={currentStep} />
+      </div>
 
-        <div className="lg:grid lg:grid-cols-12 lg:gap-x-12">
-          <div className="lg:col-span-7">
-            {currentStep === 0 && (
-              <AddressSelection 
-                selectedAddressId={selectedAddressId} 
-                setSelectedAddressId={setSelectedAddressId} 
-              />
-            )}
-            
-            {currentStep === 1 && (
-              <PaymentMethodSelection 
-                paymentMethod={paymentMethod} 
-                setPaymentMethod={setPaymentMethod} 
-              />
-            )}
-            
-            {currentStep === 2 && (
-              <div className="bg-white shadow sm:rounded-lg p-6 mb-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">Order Review</h2>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Shipping Address</h3>
-                    <AddressSelection 
-                      selectedAddressId={selectedAddressId} 
-                      setSelectedAddressId={setSelectedAddressId}
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Payment Method</h3>
-                    <PaymentMethodSelection 
-                      paymentMethod={paymentMethod} 
-                      setPaymentMethod={setPaymentMethod}
-                      readOnly
-                    />
-                  </div>
+      <div className="lg:grid lg:grid-cols-12 lg:gap-x-12">
+        <div className="lg:col-span-7">
+          {currentStep === 0 && (
+            <AddressSelection 
+              selectedAddressId={selectedAddressId} 
+              setSelectedAddressId={setSelectedAddressId} 
+            />
+          )}
+          
+          {currentStep === 1 && (
+            <PaymentMethodSelection 
+              paymentMethod={paymentMethod} 
+              setPaymentMethod={setPaymentMethod} 
+            />
+          )}
+          
+          {currentStep === 2 && (
+            <div className="bg-white shadow sm:rounded-lg p-6 mb-6">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Order Review</h2>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Shipping Address</h3>
+                  <AddressSelection 
+                    selectedAddressId={selectedAddressId} 
+                    setSelectedAddressId={setSelectedAddressId}
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Payment Method</h3>
+                  <PaymentMethodSelection 
+                    paymentMethod={paymentMethod} 
+                    setPaymentMethod={setPaymentMethod}
+                    readOnly
+                  />
+                </div>
 
-                  {/* Remove Razorpay Payment Button */}
+                <div className="mt-6">
+                  {paymentMethod === 'COD' ? (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await handleCreateOrder();
+                          setIsOrderComplete(true);
+                          clearCart();
+                          toast.success('Order placed successfully!');
+                          router.replace("/account?tab=orders");
+                        } catch (error) {
+                          toast.error(error instanceof Error ? error.message : 'Failed to process order');
+                        }
+                      }}
+                      disabled={isSubmitting}
+                      className="w-full bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center justify-center">
+                          <LoadingSpinner size="sm" />
+                          <span className="ml-2">Processing...</span>
+                        </div>
+                      ) : (
+                        'Place Order'
+                      )}
+                    </button>
+                  ) : (
+                    <RazorpayPayment
+                      amount={subtotal}
+                      onPaymentSuccess={handlePaymentSuccess}
+                      onPaymentError={handlePaymentError}
+                      onCreateOrder={handleCreateOrder}
+                    />
+                  )}
                 </div>
               </div>
-            )}
-            
-            <div className="flex items-center justify-between mt-6">
-              {currentStep > 0 && (
-                <button
-                  onClick={handlePreviousStep}
-                  className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Back
-                </button>
-              )}
-              
-              {currentStep < steps.length - 1 ? (
-                <button
-                  onClick={handleNextStep}
-                  className={`${currentStep > 0 ? 'ml-auto' : ''} bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700`}
-                >
-                  Continue
-                </button>
-              ) : (
-                <button
-                  onClick={handlePlaceOrder}
-                  disabled={isSubmitting}
-                  className={`${currentStep > 0 ? 'ml-auto' : ''} bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50`}
-                >
-                  {isSubmitting ? "Processing..." : "Place Order"}
-                </button>
-              )}
             </div>
-          </div>
+          )}
           
-          <div className="lg:col-span-5 mt-8 lg:mt-0">
-            <OrderSummary 
-              items={cartItems.filter(item => item.cartQuantity > 0)} 
-              subtotal={subtotal} 
-            />
+          {/* Navigation buttons */}
+          <div className="mt-8 flex justify-between">
+            <button
+              onClick={handlePreviousStep}
+              className={`${
+                currentStep > 0 ? '' : 'invisible'
+              } bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+            >
+              Back
+            </button>
+
+            {/* Only show next button if not on review step */}
+            {currentStep < 2 && (
+              <button
+                onClick={handleNextStep}
+                disabled={isSubmitting || !canProceed}
+                className={`${
+                  currentStep > 0 ? 'ml-auto' : ''
+                } bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50`}
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center">
+                    <LoadingSpinner size="sm" />
+                    <span className="ml-2">Processing...</span>
+                  </div>
+                ) : (
+                  'Next'
+                )}
+              </button>
+            )}
           </div>
+        </div>
+        
+        <div className="lg:col-span-5 mt-8 lg:mt-0">
+          <OrderSummary 
+            items={cartItems.filter(item => item.cartQuantity > 0)} 
+            subtotal={subtotal} 
+          />
         </div>
       </div>
     </div>

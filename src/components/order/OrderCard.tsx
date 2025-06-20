@@ -36,12 +36,13 @@ export default function OrderCard({ order, onView, onDownloadInvoice }: OrderCar
             key={item.id}
             className="flex items-center space-x-4"
           >
-            <div className="w-16 h-16 relative">
+            <div className="w-16 h-16 relative flex-shrink-0 overflow-hidden rounded">
               <Image
                 src={item.product.images[0]?.url || "/placeholder.png"}
                 alt={item.product.name}
                 fill
-                className="object-cover rounded"
+                sizes="(max-width: 64px) 100vw, 64px"
+                className="object-contain"
               />
             </div>
             <div className="flex-1">

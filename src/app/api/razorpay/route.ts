@@ -3,150 +3,135 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { shopAuthOptions } from "@/app/api/shop-auth/[...nextauth]/auth";
 import Razorpay from "razorpay";
-import { Prisma } from "@prisma/client";
+import crypto from "crypto";
 
 // Initialize Razorpay with test keys
-// In production, use environment variables for these keys
 const razorpay = new Razorpay({
-  key_id: "rzp_test_CATyXYNK2U1oRH", // Test key ID
-  key_secret: "FH4jYMTZZYQabNpRkNRJt3Hy", // Test secret key
+  key_id: process.env.RAZORPAY_KEY_ID || "",
+  key_secret: process.env.RAZORPAY_KEY_SECRET || ""
 });
 
-// Define the Razorpay response type
-interface RazorpayOrderResponse {
-  id: string;
-  amount: number;
-  currency: string;
-  receipt: string;
-  status: string;
-}
-
-// Define custom update data type for prisma
-interface CustomOrderUpdateData {
-  status?: string;
-  paymentStatus?: string;
-  razorpayOrderId?: string;
-  razorpayPaymentId?: string;
-  razorpaySignature?: string;
-  razorpayPaymentData?: string;
-}
-
-export async function POST(req: Request) {
+// POST - Create a Razorpay order
+export async function POST(request: Request) {
   try {
     const session = await getServerSession(shopAuthOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!session.user.email) {
-      return NextResponse.json({ error: "User email not found" }, { status: 400 });
+    const { amount } = await request.json();
+
+    if (!amount) {
+      return NextResponse.json({ error: "Amount is required" }, { status: 400 });
     }
 
+    // Create Razorpay order
+    const order = await razorpay.orders.create({
+      amount: Math.round(amount * 100), // Convert to smallest currency unit (paise)
+      currency: "INR",
+      receipt: `receipt_${Date.now()}`,
+    });
+
+    // Get user details for prefill
+    const userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : session.user.id;
     const user = await prisma.user.findUnique({
-      where: {
-        email: session.user.email
-      }
+      where: { id: userId },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+      },
     });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const body = await req.json();
-    const { amount, currency = "INR", orderId } = body;
-
-    if (!amount || !orderId) {
-      return NextResponse.json({ error: "Amount and order ID are required" }, { status: 400 });
-    }
-
-    // Create a Razorpay order
-    const razorpayOrder = await razorpay.orders.create({
-      amount: Math.round(amount * 100), // Razorpay expects amount in paise (1 INR = 100 paise)
-      currency,
-      receipt: `receipt_order_${orderId}`,
-      payment_capture: true, // Auto-capture the payment
-    }) as RazorpayOrderResponse;
-
-    // Fetch order details from database
-    const order = await prisma.order.findUnique({
-      where: { id: parseInt(orderId) },
-      include: { user: true }
-    });
-
-    if (!order) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
-    }
-
-    // Update order with Razorpay order ID
-    // Using CustomOrderUpdateData to properly type the update
-    const updateData: CustomOrderUpdateData = {
-      razorpayOrderId: razorpayOrder.id,
-      razorpayPaymentData: JSON.stringify(razorpayOrder)
-    };
-    
-    await prisma.order.update({
-      where: { id: parseInt(orderId) },
-      data: updateData as Prisma.OrderUpdateInput
-    });
-
-    // Set key_id explicitly
-    const keyId = "rzp_test_CATyXYNK2U1oRH";
-
     return NextResponse.json({
-      id: razorpayOrder.id,
-      amount: razorpayOrder.amount,
-      currency: razorpayOrder.currency,
-      key: keyId,
-      name: "Merugo",
-      description: `Order #${orderId}`,
-      orderId: orderId,
+      id: order.id,
+      key: process.env.RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: order.currency,
+      name: "Merugo Store",
+      description: "Purchase from Merugo Store",
       prefillData: {
         name: user.name || "",
         email: user.email || "",
         contact: user.phone || "",
-      }
+      },
     });
   } catch (error) {
-    console.error("[RAZORPAY_ORDER_POST]", error);
-    return NextResponse.json({ error: "Payment initialization failed" }, { status: 500 });
+    console.error("Razorpay order creation error:", error);
+    return NextResponse.json(
+      { error: "Failed to create payment order" },
+      { status: 500 }
+    );
   }
 }
 
-// Handle Razorpay webhook/callback
-export async function PUT(req: Request) {
+// PUT - Verify Razorpay payment and update order
+export async function PUT(request: Request) {
   try {
-    const body = await req.json();
-    const { 
-      razorpay_payment_id, 
+    const session = await getServerSession(shopAuthOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const {
+      orderId: orderIdString,
+      razorpay_payment_id,
+      razorpay_order_id,
       razorpay_signature,
-      orderId
-    } = body;
+    } = await request.json();
 
-    // Verify the payment details using Razorpay SDK (in production)
-    // Here we're just assuming the payment is successful for the demo
+    const orderId = Number(orderIdString);
 
-    // Update the order status with custom fields
-    const updateData: CustomOrderUpdateData = {
-      status: "PAID",
-      paymentStatus: "COMPLETED",
-      razorpayPaymentId: razorpay_payment_id,
-      razorpaySignature: razorpay_signature
-    };
-    
-    const updatedOrder = await prisma.order.update({
-      where: { 
-        id: parseInt(orderId) 
+    if (isNaN(orderId) || !razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+      return NextResponse.json(
+        { error: "Missing required payment verification details" },
+        { status: 400 }
+      );
+    }
+
+    // Verify signature
+    const signBody = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "")
+      .update(signBody.toString())
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      return NextResponse.json(
+        { error: "Invalid payment signature" },
+        { status: 400 }
+      );
+    }
+
+    // Update order with payment details
+    const order = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        paymentStatus: "PAID",
+        razorpayPaymentId: razorpay_payment_id,
+        razorpayOrderId: razorpay_order_id,
+        razorpaySignature: razorpay_signature,
       },
-      data: updateData as Prisma.OrderUpdateInput
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      message: "Payment successful", 
-      order: updatedOrder 
+    return NextResponse.json({
+      success: true,
+      message: "Payment verified successfully",
+      order: {
+        razorpay_payment_id,
+        razorpay_order_id,
+        razorpay_signature,
+      },
     });
   } catch (error) {
-    console.error("[RAZORPAY_VERIFY_PUT]", error);
-    return NextResponse.json({ error: "Payment verification failed" }, { status: 500 });
+    console.error("Payment verification error:", error);
+    return NextResponse.json(
+      { error: "Failed to verify payment" },
+      { status: 500 }
+    );
   }
 } 

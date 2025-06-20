@@ -20,13 +20,35 @@ export default function PaymentMethodSelection({
       description: "Pay when you receive your order",
       icon: Banknote,
     },
+    {
+      id: "RAZORPAY",
+      name: "Razorpay (Test Mode)",
+      description: "Pay securely with credit/debit card, UPI, or net banking via Razorpay",
+      icon: CreditCard,
+    }
   ];
+
+  // If in readOnly mode, only show the selected payment method
+  if (readOnly) {
+    const selectedMethod = paymentMethods.find(method => method.id === paymentMethod);
+    if (!selectedMethod) return null;
+
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="flex items-center">
+          <selectedMethod.icon className="h-5 w-5 text-gray-900 mr-3" />
+          <div>
+            <p className="font-medium text-gray-900">{selectedMethod.name}</p>
+            <p className="text-sm text-gray-500">{selectedMethod.description}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {!readOnly && (
-        <h2 className="text-lg font-medium text-gray-900">Select Payment Method</h2>
-      )}
+      <h2 className="text-lg font-medium text-gray-900">Select Payment Method</h2>
 
       <div className="grid gap-4">
         {paymentMethods.map((method) => (
@@ -37,7 +59,7 @@ export default function PaymentMethodSelection({
                 ? "border-indigo-500 ring-2 ring-indigo-500"
                 : "border-gray-300"
             }`}
-            onClick={() => !readOnly && setPaymentMethod(method.id)}
+            onClick={() => setPaymentMethod(method.id)}
           >
             <div className="flex w-full items-center justify-between">
               <div className="flex items-center">

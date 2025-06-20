@@ -3,12 +3,38 @@ import { notFound } from "next/navigation";
 import ProductCard from "@/components/product/ProductCard";
 import Image from "next/image";
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
 interface PageProps {
   params: Promise<{
     slug: string;
     id: string;
   }>;
+}
+
+async function getCategoryBreadcrumb(categoryId: number) {
+  const breadcrumb = [];
+  let currentCategory = await prisma.category.findUnique({
+    where: { id: categoryId }
+  });
+
+  while (currentCategory) {
+    breadcrumb.unshift({
+      id: currentCategory.id,
+      name: currentCategory.name,
+      slug: currentCategory.slug
+    });
+
+    if (currentCategory.parentId) {
+      currentCategory = await prisma.category.findUnique({
+        where: { id: currentCategory.parentId }
+      });
+    } else {
+      currentCategory = null;
+    }
+  }
+
+  return breadcrumb;
 }
 
 export default async function CategoryPage({ params }: PageProps) {
@@ -23,11 +49,32 @@ export default async function CategoryPage({ params }: PageProps) {
   try {
     console.log("Fetching data for category ID:", categoryId);
     const { category, products, subcategories } = await getData(categoryId);
+    const breadcrumb = await getCategoryBreadcrumb(categoryId);
     console.log("Category data:", category);
     console.log("Products count:", products.length);
 
     return (
       <div className="max-w-[1600px] mx-auto px-4 py-8">
+        {/* Breadcrumb Navigation */}
+        <div className="mb-6 flex items-center text-sm text-gray-600">
+          <Link href="/" className="hover:text-indigo-600">Home</Link>
+          {breadcrumb.map((item, index) => (
+            <span key={item.id} className="flex items-center">
+              <span className="mx-2">/</span>
+              {index === breadcrumb.length - 1 ? (
+                <span className="text-gray-900 font-medium">{item.name}</span>
+              ) : (
+                <Link 
+                  href={`/cn/${item.slug}/cid/${item.id}`}
+                  className="hover:text-indigo-600"
+                >
+                  {item.name}
+                </Link>
+              )}
+            </span>
+          ))}
+        </div>
+
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {/* Top Bar */}
           <div className="bg-white-600 text-black p-4">

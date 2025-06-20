@@ -5,11 +5,15 @@ import SearchInput from '@/components/SearchInput';
 import CartIcon from '@/components/cart/CartIcon';
 import UserDropdown from '@/components/UserDropdown';
 import { theme, withOpacity } from '@/lib/theme';
+import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
   const [isTopBarVisible, setIsTopBarVisible] = useState(true);
   const prevScrollPos = useRef(0);
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+  const pathname = usePathname();
+  
+  const isCheckoutPage = pathname === '/checkout';
   
   // Minimum scroll amount needed to trigger hide/show
   const SCROLL_THRESHOLD = 50;
@@ -92,37 +96,41 @@ export default function Navbar() {
           </div>
 
           {/* Center - Search Bar */}
-          <div className="flex-1 mx-2 md:mx-8 w-[400px]">
-            <div className="w-full">
-              <SearchInput />
-            </div>
-          </div>
-
-          {/* Right - Icons */}
-          <div className="flex items-center space-x-2 md:space-x-4">
-            <div className="relative">
-              <CartIcon />
-              {/* Cart Indicator */}
-              <div 
-                className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-xs text-white"
-                style={{ 
-                  backgroundColor: theme.primary,
-                  display: 'none' // TODO: Show based on cart items
-                }}
-              >
-                0
+          {!isCheckoutPage && (
+            <div className="flex-1 mx-2 md:mx-8 w-[400px]">
+              <div className="w-full">
+                <SearchInput />
               </div>
             </div>
-            
-            <div className="relative group">
-              <UserDropdown />
-              {/* Hover Indicator */}
-              <div  
-                className="absolute bottom-0 left-0 w-full h-0.5 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"
-                style={{ backgroundColor: theme.primary }}
-              />
+          )}
+
+          {/* Right - Icons */}
+          {!isCheckoutPage && (
+            <div className="flex items-center space-x-2 md:space-x-4">
+              <div className="relative">
+                <CartIcon />
+                {/* Cart Indicator */}
+                <div 
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-xs text-white"
+                  style={{ 
+                    backgroundColor: theme.primary,
+                    display: 'none' // TODO: Show based on cart items
+                  }}
+                >
+                  0
+                </div>
+              </div>
+              
+              <div className="relative group">
+                <UserDropdown />
+                {/* Hover Indicator */}
+                <div  
+                  className="absolute bottom-0 left-0 w-full h-0.5 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"
+                  style={{ backgroundColor: theme.primary }}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </nav>

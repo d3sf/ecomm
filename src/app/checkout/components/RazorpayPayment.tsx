@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 
 declare global {
   interface Window {
-    Razorpay: RazorpayConstructor;
+    Razorpay: any; // Using any for now to avoid type conflicts
   }
 }
 
