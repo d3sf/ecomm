@@ -85,14 +85,19 @@ const cartSlice = createSlice({
         state.items = []
       }
       
-      const existingItem = state.items.find(item => item.id === action.payload.id)
-      if (existingItem) {
-        existingItem.quantity = action.payload.quantity
-      } else {
-        state.items.push(action.payload)
+      // Only add/update items with positive quantity
+      if (action.payload.quantity > 0) {
+        const existingItem = state.items.find(item => item.id === action.payload.id)
+        if (existingItem) {
+          existingItem.quantity = action.payload.quantity
+        } else {
+          state.items.push(action.payload)
+        }
+        // Clean up any items with 0 quantity
+        state.items = state.items.filter(item => item.quantity > 0)
+        state.total = state.items.reduce((total, item) => total + (item.price * item.quantity), 0)
+        saveCartToStorage(state)
       }
-      state.total = state.items.reduce((total, item) => total + (item.price * item.quantity), 0)
-      saveCartToStorage(state)
     },
     removeFromCart: (state, action: PayloadAction<string>) => {
       if (!state.items) {
@@ -112,8 +117,8 @@ const cartSlice = createSlice({
       
       const { id, quantity } = action.payload
       
+      // If quantity is 0 or negative, remove the item
       if (quantity <= 0) {
-        // If quantity is 0 or negative, remove the item completely
         state.items = state.items.filter(item => item.id !== id)
       } else {
         const item = state.items.find(item => item.id === id)
@@ -122,6 +127,8 @@ const cartSlice = createSlice({
         }
       }
       
+      // Clean up any items with 0 quantity
+      state.items = state.items.filter(item => item.quantity > 0)
       state.total = state.items.reduce((total, item) => total + (item.price * item.quantity), 0)
       saveCartToStorage(state)
     },

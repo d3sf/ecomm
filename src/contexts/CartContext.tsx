@@ -52,7 +52,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const updateItemQuantity = (id: string, quantity: number) => {
     try {
       if (quantity <= 0) {
+        // If quantity becomes 0 or negative, remove the item immediately
         dispatch(removeFromCart(id))
+        // Also clean up any other items with 0 quantity
+        items.forEach(item => {
+          if (item.quantity <= 0) {
+            dispatch(removeFromCart(item.id))
+          }
+        })
       } else {
         dispatch(updateQuantity({ id, quantity }))
       }

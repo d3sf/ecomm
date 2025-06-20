@@ -109,20 +109,21 @@ export default function CheckoutPage() {
         throw new Error('Invalid products data returned from API');
       }
 
-      const itemsWithDetails = items.map(item => {
-        const product = products.find((p: any) =>
-          String(p.id) === String(item.id)
-        );
+      const itemsWithDetails = items
+        .map(item => {
+          const product = products.find((p: any) =>
+            String(p.id) === String(item.id)
+          );
 
-        if (product) {
-          return {
-            ...product,
-            cartQuantity: item.quantity,
-            originalProductId: item.id
-          };
-        }
-        return null;
-      }).filter(Boolean) as CartItem[];
+          if (product) {
+            return {
+              ...product,
+              cartQuantity: item.quantity,
+              originalProductId: item.id
+            };
+          }
+          return null;
+        }).filter(Boolean) as CartItem[];
 
       setCartItems(itemsWithDetails);
       
