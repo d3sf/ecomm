@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Search } from 'lucide-react';
 
@@ -12,11 +12,12 @@ export default function SearchInputContent() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const debouncedSearchQuery = useDebounce(searchQuery, 1000); // 1 second debounce
   const [isNavigatingHome, setIsNavigatingHome] = useState(false);
+  const clearingSearch = useRef(false);
 
   // Update URL with debounced search query
   useEffect(() => {
-    // Skip effect if we're navigating to the home page
-    if (isNavigatingHome) return;
+    // Skip effect if we're navigating to the home page or clearing search
+    if (isNavigatingHome || clearingSearch.current) return;
     
     if (debouncedSearchQuery !== searchParams.get('q')) {
       if (debouncedSearchQuery) {
@@ -33,9 +34,14 @@ export default function SearchInputContent() {
     // Reset navigating home flag when URL changes
     setIsNavigatingHome(false);
     
-    // Only update search query if we're on the search page
-    if (pathname === '/s') {
+    // Only update search query if we're on the search page and not clearing search
+    if (pathname === '/s' && !clearingSearch.current) {
       setSearchQuery(searchParams.get('q') || '');
+    }
+    
+    // Reset clearing search flag
+    if (clearingSearch.current) {
+      clearingSearch.current = false;
     }
   }, [searchParams, pathname]);
 
@@ -57,6 +63,12 @@ export default function SearchInputContent() {
     setSearchQuery(e.target.value);
   };
 
+  const handleClearSearch = () => {
+    clearingSearch.current = true;
+    setSearchQuery('');
+    router.push('/s');
+  };
+
   return (
     <div className="relative w-full">
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -72,10 +84,7 @@ export default function SearchInputContent() {
       />
       {searchQuery && (
         <button
-          onClick={() => {
-            setSearchQuery('');
-            router.push('/s');
-          }}
+          onClick={handleClearSearch}
           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
         >
           ×

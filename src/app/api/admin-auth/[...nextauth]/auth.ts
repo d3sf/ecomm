@@ -109,32 +109,12 @@ export const adminAuthOptions: NextAuthOptions = {
     },
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
-        try {
-          // Always fetch the latest user data from the database
-          if (token.id) {
-            const adminUser = await prisma.adminUser.findUnique({
-              where: { id: parseInt(token.id as string) },
-              select: { 
-                id: true, 
-                name: true, 
-                email: true, 
-                role: true 
-              }
-            });
-            
-            if (adminUser) {
-              session.user.id = adminUser.id.toString();
-              session.user.name = adminUser.name || undefined;
-              session.user.email = adminUser.email;
-              session.user.role = adminUser.role;
-            }
-          }
-        } catch (error) {
-          // Fallback to token data if database fetch fails
-          session.user.id = token.id as string;
-          session.user.type = token.type;
-          session.user.role = token.role;
-        }
+        // Use token data directly instead of fetching from database on every session check
+        session.user.id = token.id as string;
+        session.user.type = token.type;
+        session.user.role = token.role;
+        session.user.name = session.user.name || undefined;
+        session.user.email = session.user.email || undefined;
       }
       return session;
     }
@@ -143,5 +123,5 @@ export const adminAuthOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: false,
 }; 

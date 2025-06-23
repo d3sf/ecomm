@@ -2,7 +2,6 @@
 
 import { SessionProvider } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
 
 export default function SessionProviderWrapper({
   children,
@@ -13,14 +12,10 @@ export default function SessionProviderWrapper({
   const isAdmin = pathname?.startsWith("/admin") || false;
   const basePath = isAdmin ? "/api/admin-auth" : "/api/shop-auth";
   
-  useEffect(() => {
-    console.log(`SessionProviderWrapper: Path = ${pathname}, isAdmin = ${isAdmin}, basePath = ${basePath}`);
-  }, [pathname, isAdmin, basePath]);
-  
   return (
     <SessionProvider
       basePath={basePath}
-      refetchInterval={5 * 60} // Refetch session every 5 minutes
+      refetchInterval={30 * 60} // Refetch session every 30 minutes instead of 5
       refetchOnWindowFocus={false} // Disable refetch on window focus to prevent unnecessary requests
       refetchWhenOffline={false} // Disable refetch when offline
     >

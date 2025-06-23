@@ -54,13 +54,9 @@ export async function GET() {
       );
     }
 
-    // Log session user for debugging
-    console.log("Session user:", session.user);
-
     // Find user using helper function
     const user = await findUserFromSession(session);
     if (!user) {
-      console.log("User not found in database, returning empty orders");
       return NextResponse.json([]);
     }
 

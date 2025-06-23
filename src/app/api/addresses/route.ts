@@ -51,15 +51,11 @@ export async function GET() {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Debugging: Log the session user
-    console.log("Session user:", session.user);
-
     // Find user using helper function
     const user = await findUserFromSession(session);
 
     // If user not found, return empty addresses array
     if (!user) {
-      console.log("User not found in database, returning empty addresses");
       return NextResponse.json([]);
     }
 
